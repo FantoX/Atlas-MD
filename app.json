@@ -1,0 +1,60 @@
+{
+  "name": "Atlas-MD",
+  "description": "The future of WhatsApp bots now with plugin support.",
+  "keywords": [
+    "bot",
+    "whatsapp",
+    "stickers",
+    "whatsapp-stickers",
+    "anime",
+    "whatsapp-bot",
+    "whatsapp-sticker-bot",
+    "whatsapp-botto",
+    "baileys",
+    "baileys-md",
+    "md-bot"
+  ],
+  "website": "https://github.com/FantoX/Atlas-MD#readme",
+  "repository": "https://github.com/FantoX/Atlas-MD.git",
+  "logo": "https://graph.org/file/02abf0fd8fc2a13cc67a1.jpg",
+  "success_url": "/",
+  "env": {
+    "PREFIX": {
+      "description": "Prefix of your bot Ex: . , / , # , & etc. Put anythong except @ (Default is -)",
+      "required": false
+    },
+    "SESSION_ID": {
+      "description": "A random string for your bot session. Which works as an OTP to get qr code. You have to change session every time to get a new qr."
+    },
+    "MODS": {
+      "description": "Put any phone number without + , () and spaces \",\" Ex: 918101187835,929864781259 )",
+      "required": false
+    },
+    "TENOR_API_KEY": {
+      "description": "A key used for gif searches. If you don't have any keet it default: AIzaSyCyouca1_KKy4W_MG1xsPzuku5oa8W358c",
+      "required": false
+    },
+    "PACKNAME": {
+      "description": "Put a sticker packname here. Default is: Atlas Bot",
+      "required": false
+    },
+    "MONGODB": {
+      "description": "Put Your MongoDB URL. You can create MongoDB Atlas URL for free."
+    },
+    "OPENAI_API": {
+      "description": "Put your OpenAI API key here if you want to use ChatGPT and DALL-E.",
+      "required": false
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    },
+    {
+      "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
+    },
+    {
+      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+    }
+  ]
+}

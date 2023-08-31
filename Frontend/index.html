@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <title>Atlas V3</title>
+    <!-- Adding favicon-->
+    <link rel="shortcut icon" href="TA.png" type="image/x-icon" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <div class="video-bg">
+      <video id="bg-video" autoplay loop muted>
+        <source
+          src="https://graph.org/file/57837b3c2721ea10d2345.mp4"
+          type="video/mp4"
+        />
+      </video>
+    </div>
+
+    <div class="container">
+      <div class="screen">
+        <div class="screen__content">
+          <form class="login" action="/qr" method="get" target="_blank">
+            <div class="login__field">
+              <img class="main-logo" src="TA.png" alt="logo" />
+            </div>
+            <div class="login__field">
+              <h2 class="txt">Atlas WhatsApp Bot V-3</h2>
+            </div>
+            <div class="login__field">
+              <input
+                type="text"
+                class="login__input"
+                placeholder="Enter Your Session ID"
+                id="session"
+                name="session"
+              />
+            </div>
+
+            <button class="button login__submit">
+              <span class="button__text">Verify</span>
+            </button>
+            <p class="follow_me">Please Support Me on</p>
+            <div class="my_icons">
+              <a
+                class="icon_git"
+                href="https://www.github.com/FantoX001"
+                style="padding-right: 15px; text-decoration: none"
+                target="_blank"
+              >
+                <i
+                  class="fa fa-github"
+                  style="font-size: 26px; color: rgb(0, 0, 0)"
+                ></i>
+              </a>
+              <a
+                class="icon_git"
+                href="https://www.youtube.com/@fantoxgaming"
+                style="text-decoration: none"
+                target="_blank"
+              >
+                <i
+                  class="fa fa-youtube-play"
+                  style="font-size: 26px; color: rgb(234, 23, 23)"
+                ></i>
+              </a>
+            </div>
+          </form>
+          <div class="social-login">
+            <div class="social-icons"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,234 @@
+@import url("https://fonts.googleapis.com/css?family=Raleway:400,700");
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Raleway, sans-serif;
+}
+
+body {
+  background-image: url(BG.png);
+  background-repeat: no-repeat;
+  height: 122vh;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  scroll-behavior: hidden;
+  justify-content: center;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.11);
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.screen {
+  background: #fbf1f1d9;
+  position: fixed;
+  width: 550px;
+  box-shadow: 0px 0px 24px #000000;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.screen__content {
+  z-index: 1;
+  position: relative;
+  height: 30%;
+}
+
+.screen__background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  -webkit-clip-path: inset(0 0 0 0);
+  clip-path: inset(0 0 0 0);
+}
+
+.screen__background__shape {
+  transform: rotate(45deg);
+  position: absolute;
+}
+
+.screen__background__shape2 {
+  height: 220px;
+  width: 220px;
+  background: #c21815;
+  top: -172px;
+  right: 0;
+  border-radius: 32px;
+}
+
+.login__field {
+  padding: 10px 10px;
+  position: relative;
+  margin-left: 10px;
+}
+
+.login__icon {
+  position: absolute;
+  top: 30px;
+  color: #ffffff;
+}
+
+.login__input {
+  border: none;
+  border-bottom: 2px solid #d1d1d4;
+  background: none;
+  text-align: center;
+  padding: 10px;
+  padding-left: 10px;
+  font-weight: 700;
+  width: 100%;
+  transition: 0.2s;
+}
+
+.login__input:active,
+.login__input:focus,
+.login__input:hover {
+  outline: none;
+  border-bottom-color: #fdfdfd;
+}
+
+.login__submit {
+  background: #fff;
+  font-size: 14px;
+  margin-left: 30px;
+  padding: 13px 40px;
+  border-radius: 26px;
+  border: 1px solid #d4d3e8;
+  text-transform: uppercase;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  width: 50%;
+  box-shadow: 0px 2px 2px #27374d;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.login__submit:active,
+.login__submit:focus,
+.login__submit:hover {
+  border-color: #27374d;
+  outline: none;
+  font-size: 15px;
+}
+
+.button__icon {
+  font-size: 24px;
+  margin-left: auto;
+}
+
+.social-login {
+  position: absolute;
+  height: 50px;
+  width: 160px;
+  text-align: center;
+  bottom: 0px;
+  right: 0px;
+  color: #fff;
+}
+
+.social-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-login__icon {
+  padding: 20px 10px;
+  text-decoration: none;
+}
+
+.social-login__icon:hover {
+  transform: scale(1.5);
+}
+
+.button__text {
+  text-align: center;
+  margin: auto;
+  color: #27374d;
+}
+
+.main-logo {
+  width: 50px;
+  color: #27374d;
+}
+
+.login {
+  padding: 15px;
+  padding-top: 20px;
+  border-radius: 10px;
+}
+
+.txt {
+  margin: auto0;
+  text-align: center;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  font-style: italic;
+  color: #27374d;
+  text-shadow: #ffffff 0px 0px 10px;
+}
+
+.button {
+  margin: auto;
+  text-align: center;
+  margin-top: 10px;
+}
+
+#bg-video {
+  position: absolute;
+  background-size: cover;
+  width: fit-content;
+  top: 0;
+  left: 0;
+  height: 122vh;
+  width: auto;
+  background-size: cover;
+  z-index: -1;
+}
+
+.video-bg {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.my_icons {
+  justify-content: center;
+  text-align: center;
+}
+
+.follow_me {
+  margin-top: 40px;
+  margin-bottom: 7px;
+  font-size: 14px;
+  justify-content: center;
+  text-align: center;
+}
+
+.icon_git {
+  text-shadow: 0px 0px 15px #ffffff;
+}
