@@ -2,7 +2,7 @@ const fs = require("fs");
 const fetch = require("node-fetch");
 const axios = require("axios");
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
-let { TelegraPh } = require("../System/Uploader.js");
+let { GraphOrg } = require("../System/Uploader.js");
 const {
   fetchJson,
   getBuffer,
@@ -197,7 +197,7 @@ module.exports = {
           }
           await doReact("📮");
           media = await Atlas.downloadAndSaveMediaMessage(quoted);
-          mem = await TelegraPh(media);
+          mem = await GraphOrg(media);
           meme = `https://api.memegen.link/images/custom/-/${text}.png?background=${mem}`;
 
           let stickerMess = new Sticker(meme, {
