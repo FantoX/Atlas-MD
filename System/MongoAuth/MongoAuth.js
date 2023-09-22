@@ -54,13 +54,11 @@ module.exports = class Authenication {
             return ids.reduce((dict, id) => {
               let value = keys[key]?.[id];
               if (value) {
-                if (type === "app-state-sync-key") {
-                  value = proto.AppStateSyncKeyData.fromObject(value);
+                if (type === 'app-state-sync-key' && value) {
+                  value = proto.Message.AppStateSyncKeyData.fromObject(value);
                 }
-
                 dict[id] = value;
               }
-
               return dict;
             }, {});
           },
@@ -85,7 +83,7 @@ module.exports = class Authenication {
   /**@private */
   KEY_MAP = {
     "pre-key": "preKeys",
-    session: "sessions",
+    "session": "sessions",
     "sender-key": "senderKeys",
     "app-state-sync-key": "appStateSyncKeys",
     "app-state-sync-version": "appStateVersions",
