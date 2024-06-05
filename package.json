@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --max-old-space-size=4096 index.js"
+    "start": "node --max-old-space-size=8000 index.js"
   },
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
     "@fantox01/lyrics-scraper": "^1.0.1",
     "@hapi/boom": "^10.0.1",
     "@napi-rs/canvas": "^0.1.41",
-    "@whiskeysockets/baileys": "^6.2.1",
+    "@whiskeysockets/baileys": "git+https://github.com/WhiskeySockets/Baileys.git",
     "axios": "^1.2.2",
     "baileysjs": "^6.2.1",
     "canvacord": "^5.2.3",
@@ -59,7 +59,7 @@
     "hxz-api": "^1.0.1",
     "jimp": "^0.16.1",
     "moment-timezone": "^0.5.43",
-    "mongoose": "^7.4.4",
+    "mongoose": "^7.5.0",
     "mumaker": "^1.0.0",
     "node-fetch": "^2.6.9",
     "node-id3": "^0.2.6",
@@ -67,6 +67,7 @@
     "path": "^0.12.7",
     "pdfkit": "^0.13.0",
     "pino": "^8.1.0",
+    "pm2": "^5.3.0",
     "qrcode": "^1.5.1",
     "qrcode-terminal": "^0.12.0",
     "quick.db": "^9.1.6",
@@ -76,20 +77,19 @@
     "wa-sticker-formatter": "^4.4.4",
     "ws": "^8.0.0",
     "youtube-yts": "^2.0.0",
-    "youtubedl-core": "^4.11.5"
+    "youtubedl-core": "^4.11.5",
+    "z-anime": "^1.1.2"
   },
   "devDependencies": {
     "jimp": "^0.16.1",
     "link-preview-js": "^3.0.0",
-    "qrcode-terminal": "^0.12.0",
-    "sharp": "^0.30.5"
+    "qrcode-terminal": "^0.12.0"
   },
   "peerDependencies": {
     "@adiwajshing/keyed-db": "^0.2.4",
     "jimp": "^0.16.1",
     "link-preview-js": "^3.0.0",
-    "qrcode-terminal": "^0.12.0",
-    "sharp": "^0.30.5"
+    "qrcode-terminal": "^0.12.0"
   },
   "peerDependenciesMeta": {
     "@adiwajshing/keyed-db": {
@@ -102,9 +102,6 @@
       "optional": true
     },
     "qrcode-terminal": {
-      "optional": true
-    },
-    "sharp": {
       "optional": true
     }
   }

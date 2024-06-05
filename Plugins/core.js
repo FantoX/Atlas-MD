@@ -10,15 +10,12 @@ let mergedCommands = [
   "support",
   "supportgc",
   "script",
-  "system",
-  "info",
-  "about",
 ];
 
 module.exports = {
   name: "systemcommands",
   alias: [...mergedCommands],
-  uniquecommands: ["script", "support", "help", "system", "about"],
+  uniquecommands: ["script", "support", "help"],
   description: "All system commands",
   start: async (
     Atlas,
@@ -111,55 +108,6 @@ module.exports = {
           { video: { url: botVideo }, gifPlayback: true, caption: helpText },
           { quoted: m }
         );
-
-        break;
-
-      case "system":
-      case "info":
-      case "about":
-        await doReact("🔰");
-        let xyz = await axios.get(
-          "https://api.github.com/repos/FantoX/Atlas-MD/releases"
-        );
-        let latest = xyz.data[0].tag_name;
-        const version2 = package.version;
-        let nodeVersion = process.version;
-        let os = process.platform;
-        let osVersion = process.release.lts;
-        let architecture = process.arch;
-        let computername = process.env.COMPUTERNAME;
-        let os2 = process.env.OS;
-        let cpu2 = process.env.PROCESSOR_IDENTIFIER;
-        let core = process.env.NUMBER_OF_PROCESSORS;
-
-        let txt4 = `            🧣 *System Info* 🧣
-
-
-*〄 Node Version:* ${nodeVersion}
-
-*〄 OS:* ${os2}
-
-*〄 Platform:* ${os}
-
-*〄 Os Version:* ${osVersion}
-
-*〄 Computer Name:* ${computername}
-
-*〄 CPU:* ${cpu2}
-
-*〄 CPU Core:* ${core}
-
-*〄 CPU Architecture:* ${architecture}
-
-*〄 Current Bot version:* ${latest}
-
-*〄 Latest Bot version:* ${latest}
-`;
-
-        if (latest.includes(version2) || version2.includes(latest)) {
-          txt4 += `\n\n*⚠️ Bot Update Available:*`;
-        } else txt4 += `\n\n*🔰 Bot is up to date.*`;
-        Atlas.sendMessage(m.from, { image: pic, caption: txt4 }, { quoted: m });
 
         break;
 
