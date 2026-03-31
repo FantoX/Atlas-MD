@@ -120,7 +120,7 @@ export const formatDate = (n, locale = "id") => {
 };
 
 export const tanggal = (numer) => {
-  myMonths = [
+  const myMonths = [
     "January",
     "February",
     "March",
@@ -134,7 +134,7 @@ export const tanggal = (numer) => {
     "November",
     "December",
   ];
-  myDays = [
+  const myDays = [
     "Sunday",
     "Monday",
     "Tuesday",
@@ -145,9 +145,8 @@ export const tanggal = (numer) => {
   ];
   var tgl = new Date(numer);
   var day = tgl.getDate();
-  bulan = tgl.getMonth();
-  var thisDay = tgl.getDay(),
-    thisDay = myDays[thisDay];
+  const bulan = tgl.getMonth();
+  var thisDay = myDays[tgl.getDay()];
   var yy = tgl.getYear();
   var year = yy < 1000 ? yy + 1900 : yy;
   const time = moment.tz("Asia/India").format("DD/MM HH:mm:ss");
@@ -232,7 +231,7 @@ export const parseMention = (text = "") => {
 
 export const GIFBufferToVideoBuffer = async (image) => {
   const filename = `${Math.random().toString(36)}`;
-  await fs.writeFileSync(`./System/Cache/${filename}.gif`, image);
+  await fs.promises.writeFile(`./System/Cache/${filename}.gif`, image);
   child_process.exec(
     `ffmpeg -i ./System/Cache/${filename}.gif -movflags faststart -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ./System/Cache/${filename}.mp4`
   );

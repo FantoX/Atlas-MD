@@ -70,7 +70,7 @@ export default async (Atlas, m, commands, chatUpdate) => {
     const budy = typeof m.text == "string" ? m.text : "";
     const args = body.trim().split(/ +/).slice(1);
     const ar = args.map((v) => v.toLowerCase());
-    const text = (q = args.join(" "));
+    const text = args.join(" ");
     global.suppL = "https://cutt.ly/AtlasBotSupport";
     const inputCMD = body.slice(1).trim().split(/ +/).shift().toLowerCase();
     const groupName = m.isGroup ? metadata.subject : "";
@@ -244,35 +244,41 @@ export default async (Atlas, m, commands, chatUpdate) => {
 
     if (m.isGroup && !isCmd && !icmd) {
       let txtSender = m.quoted ? m.quoted.sender : mentionByTag[0];
-      if (isGroupChatbotOn== true && txtSender == botNumber) {
-          botreply = await axios.get(
+      if (isGroupChatbotOn == true && txtSender == botNumber) {
+        try {
+          const botreply = await axios.get(
             `http://api.brainshop.ai/get?bid=172352&key=vTmMboAxoXfsKEQQ&uid=[uid]&msg=[${budy}]`
           );
-          txtChatbot = `${botreply.data.cnt}`;
+          const txtChatbot = `${botreply.data.cnt}`;
           setTimeout(function () {
-
             m.reply(txtChatbot);
           }, 2200);
+        } catch (e) {
+          console.error("[ ATLAS ] Group chatbot error:", e.message);
+        }
       }
     }
 
     if (!m.isGroup && !isCmd && !icmd) {
       if (isPmChatbotOn == true) {
-          botreply = await axios.get(
+        try {
+          const botreply = await axios.get(
             `http://api.brainshop.ai/get?bid=172352&key=vTmMboAxoXfsKEQQ&uid=[uid]&msg=[${budy}]`
           );
-          txtChatbot = `${botreply.data.cnt}`;
+          const txtChatbot = `${botreply.data.cnt}`;
           setTimeout(function () {
-
             m.reply(txtChatbot);
           }, 2200);
+        } catch (e) {
+          console.error("[ ATLAS ] PM chatbot error:", e.message);
+        }
       }
     }
 
     // ------------------------ Character Configuration (Do not modify this part) ------------------------ //
 
-    let char = "0"; // default one
-    CharacterSelection = "0"; // user selected character
+    const char = "0"; // default one
+    let CharacterSelection = "0"; // user selected character
 
     try {
       const charx = await getChar();
@@ -283,8 +289,6 @@ export default async (Atlas, m, commands, chatUpdate) => {
 
     if (CharacterSelection == char) {
       CharacterSelection = "0";
-    } else {
-      CharacterSelection = CharacterSelection;
     }
 
     const idConfig = "charID" + CharacterSelection;

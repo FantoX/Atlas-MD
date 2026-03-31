@@ -105,18 +105,19 @@ const startAtlas = async () => {
         chalk.greenBright(plugins.length + " Plugins found ! Installing...\n")
       );
       for (let i = 0; i < plugins.length; i++) {
-        pluginUrl = plugins[i];
-        var { body, statusCode } = await got(pluginUrl);
-        if (statusCode == 200) {
-          try {
-            var folderName = "Plugins";
-            var fileName = path.basename(pluginUrl);
-
-            var filePath = path.join(folderName, fileName);
+        const pluginUrl = plugins[i];
+        try {
+          const { body, statusCode } = await got(pluginUrl);
+          if (statusCode == 200) {
+            const folderName = "Plugins";
+            const fileName = path.basename(pluginUrl);
+            const filePath = path.join(folderName, fileName);
             fs.writeFileSync(filePath, body);
-          } catch (error) {
-            console.log("Error:", error);
+          } else {
+            console.log(chalk.yellow(`[ ATLAS ] Plugin download returned status ${statusCode}: ${pluginUrl}`));
           }
+        } catch (error) {
+          console.log(chalk.redBright(`[ ATLAS ] Failed to install plugin from ${pluginUrl}: ${error.message}`));
         }
       }
       console.log(
@@ -183,7 +184,7 @@ const startAtlas = async () => {
   });
 
   Atlas.ev.on("messages.upsert", async (chatUpdate) => {
-    m = serialize(Atlas, chatUpdate.messages[0]);
+    const m = serialize(Atlas, chatUpdate.messages[0]);
 
     if (!m.message) return;
     if (m.key && m.key.remoteJid == "status@broadcast") return;
@@ -194,7 +195,7 @@ const startAtlas = async () => {
   });
 
   Atlas.getName = (jid, withoutContact = false) => {
-    id = Atlas.decodeJid(jid);
+    let id = Atlas.decodeJid(jid);
     withoutContact = Atlas.withoutContact || withoutContact;
     let v;
     if (id.endsWith("@g.us"))
@@ -267,9 +268,8 @@ const startAtlas = async () => {
       buffer = Buffer.concat([buffer, chunk]);
     }
     let type = await FileType.fromBuffer(buffer);
-    trueFileName = attachExtension ? filename + "." + type.ext : filename;
-    // save to file
-    await fs.writeFileSync(trueFileName, buffer);
+    const trueFileName = attachExtension ? filename + "." + type.ext : filename;
+    await fs.promises.writeFile(trueFileName, buffer);
     return trueFileName;
   };
 
@@ -323,11 +323,11 @@ const startAtlas = async () => {
       mime: "application/octet-stream",
       ext: ".bin",
     };
-    filename = path.join(
+    let filename = path.join(
       __filename,
       "../src/" + new Date() * 1 + "." + type.ext
     );
-    if (data && save) fs.promises.writeFile(filename, data);
+    if (data && save) await fs.promises.writeFile(filename, data);
     return {
       res,
       filename,
@@ -401,6 +401,18 @@ const startAtlas = async () => {
 };
 
 startAtlas();
+
+// Dynamic garbage collection — interval configurable via GC_INTERVAL_MINUTES env (default: 30)
+const GC_INTERVAL_MINUTES = Math.max(1, parseInt(process.env.GC_INTERVAL_MINUTES || "30", 10));
+if (typeof global.gc === "function") {
+  setInterval(() => {
+    global.gc();
+    console.log(chalk.cyan(`[ ATLAS ] Garbage collection triggered (interval: ${GC_INTERVAL_MINUTES}m)`));
+  }, GC_INTERVAL_MINUTES * 60 * 1000);
+  console.log(chalk.cyan(`[ ATLAS ] GC scheduler active — running every ${GC_INTERVAL_MINUTES} minute(s)`));
+} else {
+  console.warn("[ ATLAS ] GC not available. Start the bot with 'npm start' to enable garbage collection.");
+}
 
 app.use("/", express.static(join(__dirname, "Frontend")));
 
