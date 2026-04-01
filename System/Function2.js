@@ -1,5 +1,5 @@
-import baileysjs from "baileysjs";
-const { proto, delay, getContentType } = baileysjs;
+import @whiskeysockets/baileys from "@whiskeysockets/baileys";
+const { proto, delay, getContentType } = @whiskeysockets/baileys;
 import chalk from "chalk";
 import fs from "fs";
 const { unlink } = fs.promises;

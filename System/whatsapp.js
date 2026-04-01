@@ -1,5 +1,5 @@
-import baileysjs from "baileysjs";
-const { extensionForMediaMessage, extractMessageContent, jidNormalizedUser, getContentType, normalizeMessageContent, proto, delay, downloadContentFromMessage, getBinaryNodeChild } = baileysjs;
+import @whiskeysockets/baileys from "@whiskeysockets/baileys";
+const { extensionForMediaMessage, extractMessageContent, jidNormalizedUser, getContentType, normalizeMessageContent, proto, delay, downloadContentFromMessage, getBinaryNodeChild } = @whiskeysockets/baileys;
 import fs from "fs";
 import FileType from "file-type";
 import { getRandom, fetchBuffer } from "./Function.js";

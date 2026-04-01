@@ -6,42 +6,71 @@ const options = {
 
 // ----------------------- Atlas can work with upto 4 MongoDB databases at once to distribute DB load  -------------------- //
 
-const db1 = mongoose.createConnection(config.mongodb, options); // You malually put first mongodb url here
-const db2 = mongoose.createConnection(config.mongodb, options); // You malually put second mongodb url here
+const UserDb = mongoose.createConnection(config.mongodb, options); // You malually put first mongodb url here
+const Systemdb = mongoose.createConnection(config.mongodb, options); // You malually put second mongodb url here
 
-const GroupSchema = new mongoose.Schema({
-  id: { type: String, unique: true, required: true },
-  antilink: { type: Boolean, default: false },
-  nsfw: { type: Boolean, default: false },
-  bangroup: { type: Boolean, default: false },
-  chatBot: { type: Boolean, default: false },
-  botSwitch: { type: Boolean, default: true },
-  switchNSFW: { type: Boolean, default: false },
-  switchWelcome: { type: Boolean, default: false },
-});
+const GroupSchema = new mongoose.Schema(
+  {
+    id: { type: String, unique: true, required: true, index: true },
 
-const UserSchema = new mongoose.Schema({
-  id: { type: String, unique: true, required: true },
-  ban: { type: Boolean, default: false },
-  name: { type: String },
-  addedMods: { type: Boolean, default: false },
-});
+    antilink: { type: Boolean, default: false, index: true },
+    nsfw: { type: Boolean, default: false, index: true },
+    bangroup: { type: Boolean, default: false, index: true },
+    chatBot: { type: Boolean, default: false, index: true },
 
-const CoreSchema = new mongoose.Schema({
-  id: { type: String, unique: false, required: true, default: "1" },
-  seletedCharacter: { type: String, default: "0" },
-  PMchatBot: { type: Boolean, default: false },
-  botMode: { type: String, default: "public" },
-});
+    botSwitch: { type: Boolean, default: true, index: true },
+    switchNSFW: { type: Boolean, default: false },
+    switchWelcome: { type: Boolean, default: false },
+  },
+  { autoIndex: true }
+);
 
-const PluginSchema = new mongoose.Schema({
-  plugin: { type: String },
-  url: { type: String },
-});
+// Compound indexes (important for filters)
+GroupSchema.index({ id: 1, botSwitch: 1 });
+GroupSchema.index({ nsfw: 1, botSwitch: 1 });
 
-const userData = db1.model("UserData", UserSchema);
-const groupData = db1.model("GroupData", GroupSchema);
-const systemData = db2.model("SystemData", CoreSchema);
-const pluginData = db2.model("PluginData", PluginSchema);
+const UserSchema = new mongoose.Schema(
+  {
+    id: { type: String, unique: true, required: true, index: true },
 
-export { userData, groupData, systemData, pluginData };
+    ban: { type: Boolean, default: false, index: true },
+    name: { type: String, index: true }, // if you search users
+    addedMods: { type: Boolean, default: false, index: true },
+  },
+  { autoIndex: true }
+);
+
+// Optional compound index
+UserSchema.index({ id: 1, ban: 1 });
+
+const CoreSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true, default: "1", index: true },
+
+    seletedCharacter: { type: String },
+    PMchatBot: { type: Boolean, default: false, index: true },
+    botMode: { type: String, default: "public", index: true },
+  },
+  { autoIndex: true }
+);
+
+// Since id is basically constant, index helps quick fetch
+CoreSchema.index({ id: 1, botMode: 1 });
+
+const PluginSchema = new mongoose.Schema(
+  {
+    plugin: { type: String, index: true },
+    url: { type: String, index: true },
+  },
+  { autoIndex: true }
+);
+
+// Prevent duplicate plugins
+PluginSchema.index({ plugin: 1 }, { unique: true });
+
+const userData = UserDb.model("UserData", UserSchema);
+const groupData = UserDb.model("GroupData", GroupSchema);
+const systemData = Systemdb.model("SystemData", CoreSchema);
+const pluginData = Systemdb.model("PluginData", PluginSchema);
+
+export { groupData, pluginData, systemData, userData };

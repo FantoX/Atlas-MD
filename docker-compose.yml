@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: atlas_mongodb
+    restart: unless-stopped
+    # Use a healthcheck to ensure the database is ready before the bot starts
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "27017:27017"
+    volumes:
+      - atlas_db_data:/data/db
+
+  atlas-bot:
+    build:
+      context: .
+    container_name: atlas_bot
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - .env
+    # Fallback env if .env is missing or for defaults
+    environment:
+      - MONGODB=mongodb://mongodb:27017/atlas
+      - PORT=${PORT:-10000}
+    ports:
+      - "10000:10000"
+
+volumes:
+  atlas_db_data:

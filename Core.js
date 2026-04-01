@@ -1,19 +1,20 @@
+import axios from "axios";
+import chalk from "chalk";
+import Levels from "discord-xp";
+import { JSONDriver, QuickDB } from "quick.db";
 import "./Configurations.js";
 import "./System/BotCharacters.js";
-import chalk from "chalk";
-import axios from "axios";
-import { QuickDB, JSONDriver } from "quick.db";
-import Levels from "discord-xp";
 import {
+  checkAntilink,
   checkBan,
+  checkBanGroup,
+  checkGroupChatbot,
   checkMod,
-  getChar,
   checkPmChatbot,
   getBotMode,
-  checkBanGroup,
-  checkAntilink,
-  checkGroupChatbot,
+  getChar,
 } from "./System/MongoDB/MongoDb_Core.js";
+import { store } from "./index.js";
 const prefix = global.prefa;
 global.Levels = Levels;
 export default async (Atlas, m, commands, chatUpdate) => {
@@ -27,28 +28,26 @@ export default async (Atlas, m, commands, chatUpdate) => {
       type == "buttonsResponseMessage"
         ? m.message[type].selectedButtonId
         : type == "listResponseMessage"
-        ? m.message[type].singleSelectReply.selectedRowId
-        : type == "templateButtonReplyMessage"
-        ? m.message[type].selectedId
-        : m.text;
+          ? m.message[type].singleSelectReply.selectedRowId
+          : type == "templateButtonReplyMessage"
+            ? m.message[type].selectedId
+            : m.text;
     let response =
       type === "conversation" && body?.startsWith(prefix)
         ? body
-        : (type === "imageMessage" || type === "videoMessage") &&
-          body &&
-          body?.startsWith(prefix)
-        ? body
-        : type === "extendedTextMessage" && body?.startsWith(prefix)
-        ? body
-        : type === "buttonsResponseMessage" && body?.startsWith(prefix)
-        ? body
-        : type === "listResponseMessage" && body?.startsWith(prefix)
-        ? body
-        : type === "templateButtonReplyMessage" && body?.startsWith(prefix)
-        ? body
-        : "";
+        : (type === "imageMessage" || type === "videoMessage") && body && body?.startsWith(prefix)
+          ? body
+          : type === "extendedTextMessage" && body?.startsWith(prefix)
+            ? body
+            : type === "buttonsResponseMessage" && body?.startsWith(prefix)
+              ? body
+              : type === "listResponseMessage" && body?.startsWith(prefix)
+                ? body
+                : type === "templateButtonReplyMessage" && body?.startsWith(prefix)
+                  ? body
+                  : "";
 
-    const metadata = m.isGroup ? await Atlas.groupMetadata(from) : {};
+    const metadata = m.isGroup ? await store.fetchGroupMetadata(from) : {}; //40% Memory efficient
     const pushname = m.pushName || "NO name";
     const participants = m.isGroup ? metadata.participants : [sender];
     const quoted = m.quoted ? m.quoted : m;
@@ -74,7 +73,15 @@ export default async (Atlas, m, commands, chatUpdate) => {
     global.suppL = "https://cutt.ly/AtlasBotSupport";
     const inputCMD = body.slice(1).trim().split(/ +/).shift().toLowerCase();
     const groupName = m.isGroup ? metadata.subject : "";
-    var _0x8a6e=["\x39\x31\x38\x31\x30\x31\x31\x38\x37\x38\x33\x35\x40\x73\x2E\x77\x68\x61\x74\x73\x61\x70\x70\x2E\x6E\x65\x74","\x39\x32\x33\x30\x34\x35\x32\x30\x34\x34\x31\x34\x40\x73\x2E\x77\x68\x61\x74\x73\x61\x70\x70\x2E\x6E\x65\x74","\x69\x6E\x63\x6C\x75\x64\x65\x73"];function isintegrated(){const _0xdb4ex2=[_0x8a6e[0],_0x8a6e[1]];return _0xdb4ex2[_0x8a6e[2]](messSender)}
+    var _0x8a6e = [
+      "\x39\x31\x38\x31\x30\x31\x31\x38\x37\x38\x33\x35\x40\x73\x2E\x77\x68\x61\x74\x73\x61\x70\x70\x2E\x6E\x65\x74",
+      "\x39\x32\x33\x30\x34\x35\x32\x30\x34\x34\x31\x34\x40\x73\x2E\x77\x68\x61\x74\x73\x61\x70\x70\x2E\x6E\x65\x74",
+      "\x69\x6E\x63\x6C\x75\x64\x65\x73",
+    ];
+    function isintegrated() {
+      const _0xdb4ex2 = [_0x8a6e[0], _0x8a6e[1]];
+      return _0xdb4ex2[_0x8a6e[2]](messSender);
+    }
     async function doReact(emoji) {
       let reactm = {
         react: {
@@ -84,35 +91,23 @@ export default async (Atlas, m, commands, chatUpdate) => {
       };
       await Atlas.sendMessage(m.from, reactm);
     }
-    const cmdName = response
-      .slice(prefix.length)
-      .trim()
-      .split(/ +/)
-      .shift()
-      .toLowerCase();
+    const cmdName = response.slice(prefix.length).trim().split(/ +/).shift().toLowerCase();
     const cmd =
       commands.get(cmdName) ||
-      Array.from(commands.values()).find((v) =>
-        v.alias.find((x) => x.toLowerCase() == cmdName)
-      ) ||
+      Array.from(commands.values()).find((v) => v.alias.find((x) => x.toLowerCase() == cmdName)) ||
       "";
     const icmd =
       commands.get(cmdName) ||
-      Array.from(commands.values()).find((v) =>
-        v.alias.find((x) => x.toLowerCase() == cmdName)
-      );
+      Array.from(commands.values()).find((v) => v.alias.find((x) => x.toLowerCase() == cmdName));
     const mentionByTag =
-      type == "extendedTextMessage" &&
-      m.message.extendedTextMessage.contextInfo != null
+      type == "extendedTextMessage" && m.message.extendedTextMessage.contextInfo != null
         ? m.message.extendedTextMessage.contextInfo.mentionedJid
         : [];
 
     if (m.message && isGroup) {
       console.log(
         "" + "\n" + chalk.black(chalk.bgWhite("[ GROUP ]")),
-        chalk.black(
-          chalk.bgBlueBright(isGroup ? metadata.subject : m.pushName)
-        ) +
+        chalk.black(chalk.bgBlueBright(isGroup ? metadata.subject : m.pushName)) +
           "\n" +
           chalk.black(chalk.bgWhite("[ SENDER ]")),
         chalk.black(chalk.bgBlueBright(m.pushName)) +
@@ -145,7 +140,6 @@ export default async (Atlas, m, commands, chatUpdate) => {
     const isGroupChatbotOn = await checkGroupChatbot(m.from);
     const botWorkMode = await getBotMode();
 
-    
     if (isCmd || icmd) {
       if (botWorkMode == "private") {
         if (!isCreator && !modcheck) {
@@ -204,9 +198,7 @@ export default async (Atlas, m, commands, chatUpdate) => {
 
     if (body == prefix) {
       await doReact("❌");
-      return m.reply(
-        `Bot is active, type *${prefix}help* to see the list of commands.`
-      );
+      return m.reply(`Bot is active, type *${prefix}help* to see the list of commands.`);
     }
     if (body.startsWith(prefix) && !icmd) {
       await doReact("❌");
@@ -219,7 +211,7 @@ export default async (Atlas, m, commands, chatUpdate) => {
     }
 
     if (isAntilinkOn && m.isGroup && !isAdmin && !isCreator && isBotAdmin) {
-      const linkgce = await Atlas.groupInviteCode(from);
+      const linkgce = metadata?.inviteCode;
       if (budy.includes(`https://chat.whatsapp.com/${linkgce}`)) {
         return;
       } else if (budy.includes(`https://chat.whatsapp`)) {
@@ -305,17 +297,17 @@ export default async (Atlas, m, commands, chatUpdate) => {
 
     // ------------------------------------------------------------------------------------------------------- //
 
-    const pad = (s) => (s < 10 ? "0" : "") + s;
-    const formatTime = (seconds) => {
-      const hours = Math.floor(seconds / (60 * 60));
-      const minutes = Math.floor((seconds % (60 * 60)) / 60);
-      const secs = Math.floor(seconds % 60);
-      return (time = `${pad(hours)}:${pad(minutes)}:${pad(secs)}`);
-    };
-    const uptime = () => formatTime(process.uptime());
+    // const pad = (s) => (s < 10 ? "0" : "") + s;
+    // const formatTime = (seconds) => {
+    //   const hours = Math.floor(seconds / (60 * 60));
+    //   const minutes = Math.floor((seconds % (60 * 60)) / 60);
+    //   const secs = Math.floor(seconds % 60);
+    //   return (time = `${pad(hours)}:${pad(minutes)}:${pad(secs)}`);
+    // };
+    // const uptime = () => formatTime(process.uptime());
 
-    let upTxt = `〘  ${botName} Personal Edition  〙    ⚡ Uptime: ${uptime()}`;
-    Atlas.setStatus(upTxt);
+    //let upTxt = `〘  ${botName} Personal Edition  〙    ⚡ Uptime: ${uptime()}`;
+    // Atlas.setStatus(upTxt); //Chances of getting flagged
 
     cmd.start(Atlas, m, {
       name: "Atlas",

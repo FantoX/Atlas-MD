@@ -1,34 +1,40 @@
-import "./Configurations.js";
-import atlasConnect, { DisconnectReason, fetchLatestBaileysVersion, downloadContentFromMessage, makeInMemoryStore, jidDecode } from "baileysjs";
-import fs from "fs";
-import figlet from "figlet";
-import { join } from "path";
-import got from "got";
-import pino from "pino";
-import path from "path";
-import FileType from "file-type";
 import { Boom } from "@hapi/boom";
-import { serialize, WAConnection } from "./System/whatsapp.js";
-import { smsg, getBuffer, getSizeMedia } from "./System/Function2.js";
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import atlasConnect, {
+  DisconnectReason,
+  downloadContentFromMessage,
+  fetchLatestBaileysVersion,
+  jidDecode,
+  makeInMemoryStore,
+} from "@whiskeysockets/baileys";
+import figlet from "figlet";
+import FileType from "file-type";
+import fs from "fs";
+import got from "got";
+import path, { dirname, join } from "path";
+import pino from "pino";
+import { fileURLToPath } from "url";
+import "./Configurations.js";
+import { getBuffer, getSizeMedia, smsg } from "./System/Function2.js";
+import { serialize } from "./System/whatsapp.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import express from "express";
+import mongoose from "mongoose";
+import qrcode from "qrcode";
+import core from "./Core.js";
+import Auth from "./System/MongoAuth/MongoAuth.js";
+import { getPluginURLs } from "./System/MongoDB/MongoDb_Core.js";
+import { commands, readcommands } from "./System/ReadCommands.js";
+import welcomeLeft from "./System/Welcome.js";
 const app = express();
 const PORT = global.port;
-import welcomeLeft from "./System/Welcome.js";
-import { readcommands, commands } from "./System/ReadCommands.js";
-import core from "./Core.js";
 commands.prefix = global.prefa;
-import mongoose from "mongoose";
-import Auth from "./System/MongoAuth/MongoAuth.js";
-import qrcode from "qrcode";
-import { getPluginURLs } from "./System/MongoDB/MongoDb_Core.js";
 
 import chalk from "chalk";
-const store = makeInMemoryStore({
+
+//Add Custom store @Fantox
+export const store = makeInMemoryStore({
   logger: pino().child({
     level: "silent",
     stream: "store",
@@ -41,9 +47,7 @@ let status;
 const startAtlas = async () => {
   try {
     await mongoose.connect(mongodb).then(() => {
-      console.log(
-        chalk.greenBright("Establishing secure connection with MongoDB...\n")
-      );
+      console.log(chalk.greenBright("Establishing secure connection with MongoDB...\n"));
     });
   } catch (err) {
     console.log(
@@ -77,6 +81,10 @@ const startAtlas = async () => {
     browser: ["Atlas", "Safari", "1.0.0"],
     auth: state,
     version,
+    getMessage: async (key) => {
+      if (key.remoteJid === "status@broadcast") return {};
+      return store.loadMessage(key.remoteJid, key.id);
+    },
   });
 
   store.bind(Atlas.ev);
@@ -98,13 +106,9 @@ const startAtlas = async () => {
     }
 
     if (!plugins.length || plugins.length == 0) {
-      console.log(
-        chalk.redBright("No Extra Plugins Installed ! Starting Atlas...\n")
-      );
+      console.log(chalk.redBright("No Extra Plugins Installed ! Starting Atlas...\n"));
     } else {
-      console.log(
-        chalk.greenBright(plugins.length + " Plugins found ! Installing...\n")
-      );
+      console.log(chalk.greenBright(plugins.length + " Plugins found ! Installing...\n"));
       for (let i = 0; i < plugins.length; i++) {
         const pluginUrl = plugins[i];
         try {
@@ -115,17 +119,19 @@ const startAtlas = async () => {
             const filePath = path.join(folderName, fileName);
             fs.writeFileSync(filePath, body);
           } else {
-            console.log(chalk.yellow(`[ ATLAS ] Plugin download returned status ${statusCode}: ${pluginUrl}`));
+            console.log(
+              chalk.yellow(`[ ATLAS ] Plugin download returned status ${statusCode}: ${pluginUrl}`)
+            );
           }
         } catch (error) {
-          console.log(chalk.redBright(`[ ATLAS ] Failed to install plugin from ${pluginUrl}: ${error.message}`));
+          console.log(
+            chalk.redBright(
+              `[ ATLAS ] Failed to install plugin from ${pluginUrl}: ${error.message}`
+            )
+          );
         }
       }
-      console.log(
-        chalk.greenBright(
-          "All Plugins Installed Successfully ! Starting Atlas...\n"
-        )
-      );
+      console.log(chalk.greenBright("All Plugins Installed Successfully ! Starting Atlas...\n"));
     }
   }
 
@@ -142,9 +148,7 @@ const startAtlas = async () => {
     if (connection === "close") {
       let reason = new Boom(lastDisconnect?.error)?.output.statusCode;
       if (reason === DisconnectReason.badSession) {
-        console.log(
-          `[ ATLAS ] Bad Session File, Please Delete Session and Scan Again.\n`
-        );
+        console.log(`[ ATLAS ] Bad Session File, Please Delete Session and Scan Again.\n`);
         process.exit();
       } else if (reason === DisconnectReason.connectionClosed) {
         console.log("[ ATLAS ] Connection closed, reconnecting....\n");
@@ -159,9 +163,7 @@ const startAtlas = async () => {
         process.exit();
       } else if (reason === DisconnectReason.loggedOut) {
         clearState();
-        console.log(
-          `[ ATLAS ] Device Logged Out, Please Delete Session and Scan Again.\n`
-        );
+        console.log(`[ ATLAS ] Device Logged Out, Please Delete Session and Scan Again.\n`);
         process.exit();
       } else if (reason === DisconnectReason.restartRequired) {
         console.log("[ ATLAS ] Server Restarting...\n");
@@ -205,9 +207,7 @@ const startAtlas = async () => {
         resolve(
           v.name ||
             v.subject ||
-            PhoneNumber("+" + id.replace("@s.whatsapp.net", "")).getNumber(
-              "international"
-            )
+            PhoneNumber("+" + id.replace("@s.whatsapp.net", "")).getNumber("international")
         );
       });
     else
@@ -218,15 +218,13 @@ const startAtlas = async () => {
               name: "WhatsApp",
             }
           : id === Atlas.decodeJid(Atlas.user.id)
-          ? Atlas.user
-          : store.contacts[id] || {};
+            ? Atlas.user
+            : store.contacts[id] || {};
     return (
       (withoutContact ? "" : v.name) ||
       v.subject ||
       v.verifiedName ||
-      PhoneNumber("+" + jid.replace("@s.whatsapp.net", "")).getNumber(
-        "international"
-      )
+      PhoneNumber("+" + jid.replace("@s.whatsapp.net", "")).getNumber("international")
     );
   };
 
@@ -234,10 +232,7 @@ const startAtlas = async () => {
     if (!jid) return jid;
     if (/:\d+@/gi.test(jid)) {
       let decode = jidDecode(jid) || {};
-      return (
-        (decode.user && decode.server && decode.user + "@" + decode.server) ||
-        jid
-      );
+      return (decode.user && decode.server && decode.user + "@" + decode.server) || jid;
     } else return jid;
   };
 
@@ -252,16 +247,10 @@ const startAtlas = async () => {
     }
   });
 
-  Atlas.downloadAndSaveMediaMessage = async (
-    message,
-    filename,
-    attachExtension = true
-  ) => {
+  Atlas.downloadAndSaveMediaMessage = async (message, filename, attachExtension = true) => {
     let quoted = message.msg ? message.msg : message;
     let mime = (message.msg || message).mimetype || "";
-    let messageType = message.mtype
-      ? message.mtype.replace(/Message/gi, "")
-      : mime.split("/")[0];
+    let messageType = message.mtype ? message.mtype.replace(/Message/gi, "") : mime.split("/")[0];
     const stream = await downloadContentFromMessage(quoted, messageType);
     let buffer = Buffer.from([]);
     for await (const chunk of stream) {
@@ -275,9 +264,7 @@ const startAtlas = async () => {
 
   Atlas.downloadMediaMessage = async (message) => {
     let mime = (message.msg || message).mimetype || "";
-    let messageType = message.mtype
-      ? message.mtype.replace(/Message/gi, "")
-      : mime.split("/")[0];
+    let messageType = message.mtype ? message.mtype.replace(/Message/gi, "") : mime.split("/")[0];
     const stream = await downloadContentFromMessage(message, messageType);
     let buffer = Buffer.from([]);
     for await (const chunk of stream) {
@@ -288,9 +275,7 @@ const startAtlas = async () => {
   };
 
   Atlas.parseMention = async (text) => {
-    return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(
-      (v) => v[1] + "@s.whatsapp.net"
-    );
+    return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map((v) => v[1] + "@s.whatsapp.net");
   };
 
   Atlas.sendText = (jid, text, quoted = "", options) =>
@@ -310,23 +295,20 @@ const startAtlas = async () => {
     let data = Buffer.isBuffer(PATH)
       ? PATH
       : /^data:.*?\/.*?;base64,/i.test(PATH)
-      ? Buffer.from(PATH.split`,`[1], "base64")
-      : /^https?:\/\//.test(PATH)
-      ? await (res = await getBuffer(PATH))
-      : fs.existsSync(PATH)
-      ? ((filename = PATH), fs.readFileSync(PATH))
-      : typeof PATH === "string"
-      ? PATH
-      : Buffer.alloc(0);
+        ? Buffer.from(PATH.split`,`[1], "base64")
+        : /^https?:\/\//.test(PATH)
+          ? await (res = await getBuffer(PATH))
+          : fs.existsSync(PATH)
+            ? ((filename = PATH), fs.readFileSync(PATH))
+            : typeof PATH === "string"
+              ? PATH
+              : Buffer.alloc(0);
 
     let type = (await FileType.fromBuffer(data)) || {
       mime: "application/octet-stream",
       ext: ".bin",
     };
-    let filename = path.join(
-      __filename,
-      "../src/" + new Date() * 1 + "." + type.ext
-    );
+    let filename = path.join(__filename, "../src/" + new Date() * 1 + "." + type.ext);
     if (data && save) await fs.promises.writeFile(filename, data);
     return {
       res,
@@ -405,13 +387,22 @@ startAtlas();
 // Dynamic garbage collection — interval configurable via GC_INTERVAL_MINUTES env (default: 30)
 const GC_INTERVAL_MINUTES = Math.max(1, parseInt(process.env.GC_INTERVAL_MINUTES || "30", 10));
 if (typeof global.gc === "function") {
-  setInterval(() => {
-    global.gc();
-    console.log(chalk.cyan(`[ ATLAS ] Garbage collection triggered (interval: ${GC_INTERVAL_MINUTES}m)`));
-  }, GC_INTERVAL_MINUTES * 60 * 1000);
-  console.log(chalk.cyan(`[ ATLAS ] GC scheduler active — running every ${GC_INTERVAL_MINUTES} minute(s)`));
+  setInterval(
+    () => {
+      global.gc();
+      console.log(
+        chalk.cyan(`[ ATLAS ] Garbage collection triggered (interval: ${GC_INTERVAL_MINUTES}m)`)
+      );
+    },
+    GC_INTERVAL_MINUTES * 60 * 1000
+  );
+  console.log(
+    chalk.cyan(`[ ATLAS ] GC scheduler active — running every ${GC_INTERVAL_MINUTES} minute(s)`)
+  );
 } else {
-  console.warn("[ ATLAS ] GC not available. Start the bot with 'npm start' to enable garbage collection.");
+  console.warn(
+    "[ ATLAS ] GC not available. Start the bot with 'npm start' to enable garbage collection."
+  );
 }
 
 app.use("/", express.static(join(__dirname, "Frontend")));

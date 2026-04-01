@@ -1,5 +1,5 @@
-import baileysjs from "baileysjs";
-const { initAuthCreds, BufferJSON, proto } = baileysjs;
+import @whiskeysockets/baileys from "@whiskeysockets/baileys";
+const { initAuthCreds, BufferJSON, proto } = @whiskeysockets/baileys;
 import Database from "./AuthDB.js";
 
 export default class Authenication {

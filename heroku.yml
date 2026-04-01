@@ -1,5 +1,5 @@
-build: 
-  docker: 
-      worker: Dockerfile
+build:
+  docker:
+    worker: Dockerfile
 run:
-   web: forever index.js
+  web: node --max-old-space-size=4096 index.js
