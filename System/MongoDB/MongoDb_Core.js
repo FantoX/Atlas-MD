@@ -1,48 +1,54 @@
-import { userData, groupData, systemData, pluginData } from "../MongoDB/MongoDB_Schema.js";
-import mongoose from "mongoose";
+import LRUCache from "../LRUCache.js";
+import { groupData, pluginData, systemData, userData } from "../MongoDB/MongoDB_Schema.js";
 
 // ─── In-Memory Cache ──────────────────────────────────────────────────────────
 // TTLs are configurable via env; sensible defaults shown below.
-const USER_CACHE_TTL   = parseInt(process.env.USER_CACHE_TTL_MS  || "300000", 10); // 5 min
-const GROUP_CACHE_TTL  = parseInt(process.env.GROUP_CACHE_TTL_MS || "300000", 10); // 5 min
-const SYSTEM_CACHE_TTL = parseInt(process.env.SYS_CACHE_TTL_MS   || "600000", 10); // 10 min
+const USER_CACHE_TTL = parseInt(process.env.USER_CACHE_TTL_MS || "300000", 10); // 5 min
+const GROUP_CACHE_TTL = parseInt(process.env.GROUP_CACHE_TTL_MS || "300000", 10); // 5 min
+const SYSTEM_CACHE_TTL = parseInt(process.env.SYS_CACHE_TTL_MS || "600000", 10); // 10 min
 
-// user cache  : Map<userId, { ban, addedMods, expiresAt }>
-// group cache : Map<groupId, { antilink, bangroup, chatBot, switchWelcome, expiresAt }>
-// system cache: single object (one "id: 1" row)
-const userCache   = new Map();
-const groupCache  = new Map();
-let   systemCache = { data: null, expiresAt: 0 };
+// user cache  : LRUCache<userId, { ban, addedMods }>
+// group cache : LRUCache<groupId, { antilink, bangroup, chatBot, switchWelcome }>
+// system cache: LRUCache<id, { seletedCharacter, PMchatBot, botMode }>
+// link cache  : LRUCache<groupId, inviteCode>
+const userCache = new LRUCache({ max: 10000, ttl: USER_CACHE_TTL });
+const groupCache = new LRUCache({ max: 10000, ttl: GROUP_CACHE_TTL });
+const systemCache = new LRUCache({ max: 1, ttl: SYSTEM_CACHE_TTL });
+const linkCache = new LRUCache({ max: 1000, ttl: 3600000 }); // 1 hour
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function _getUser(userId) {
-  const e = userCache.get(userId);
-  return e && Date.now() < e.expiresAt ? e : null;
+  return userCache.get(userId);
 }
 function _setUser(userId, fields) {
   const prev = userCache.get(userId) || {};
-  userCache.set(userId, { ...prev, ...fields, expiresAt: Date.now() + USER_CACHE_TTL });
+  userCache.set(userId, { ...prev, ...fields });
 }
-function _delUser(userId) { userCache.delete(userId); }
+function _delUser(userId) {
+  userCache.delete(userId);
+}
 
 function _getGroup(groupId) {
-  const e = groupCache.get(groupId);
-  return e && Date.now() < e.expiresAt ? e : null;
+  return groupCache.get(groupId);
 }
 function _setGroup(groupId, fields) {
   const prev = groupCache.get(groupId) || {};
-  groupCache.set(groupId, { ...prev, ...fields, expiresAt: Date.now() + GROUP_CACHE_TTL });
+  groupCache.set(groupId, { ...prev, ...fields });
 }
-function _delGroup(groupId) { groupCache.delete(groupId); }
+function _delGroup(groupId) {
+  groupCache.delete(groupId);
+}
 
 function _getSys() {
-  return systemCache.data && Date.now() < systemCache.expiresAt ? systemCache.data : null;
+  return systemCache.get("1");
 }
 function _setSys(fields) {
-  systemCache.data = { ...(systemCache.data || {}), ...fields };
-  systemCache.expiresAt = Date.now() + SYSTEM_CACHE_TTL;
+  const prev = systemCache.get("1") || {};
+  systemCache.set("1", { ...prev, ...fields });
 }
-function _delSys() { systemCache.data = null; systemCache.expiresAt = 0; }
+function _delSys() {
+  systemCache.delete("1");
+}
 
 // ─── User Functions ───────────────────────────────────────────────────────────
 
@@ -167,7 +173,11 @@ async function getChar() {
     _setSys({ seletedCharacter: "0" });
     return "0";
   }
-  _setSys({ seletedCharacter: character.seletedCharacter, PMchatBot: character.PMchatBot, botMode: character.botMode });
+  _setSys({
+    seletedCharacter: character.seletedCharacter,
+    PMchatBot: character.PMchatBot,
+    botMode: character.botMode,
+  });
   return character.seletedCharacter;
 }
 
@@ -194,7 +204,11 @@ async function checkPmChatbot() {
     _setSys({ PMchatBot: false });
     return false;
   }
-  _setSys({ PMchatBot: chatbotpm.PMchatBot, seletedCharacter: chatbotpm.seletedCharacter, botMode: chatbotpm.botMode });
+  _setSys({
+    PMchatBot: chatbotpm.PMchatBot,
+    seletedCharacter: chatbotpm.seletedCharacter,
+    botMode: chatbotpm.botMode,
+  });
   return chatbotpm.PMchatBot;
 }
 
@@ -232,7 +246,11 @@ async function getBotMode() {
     _setSys({ botMode: "public" });
     return "public";
   }
-  _setSys({ botMode: selectedMode.botMode, PMchatBot: selectedMode.PMchatBot, seletedCharacter: selectedMode.seletedCharacter });
+  _setSys({
+    botMode: selectedMode.botMode,
+    PMchatBot: selectedMode.PMchatBot,
+    seletedCharacter: selectedMode.seletedCharacter,
+  });
   return selectedMode.botMode;
 }
 
@@ -259,7 +277,12 @@ async function checkWelcome(groupID) {
     _setGroup(groupID, { switchWelcome: false });
     return false;
   }
-  _setGroup(groupID, { switchWelcome: group.switchWelcome, antilink: group.antilink, chatBot: group.chatBot, bangroup: group.bangroup });
+  _setGroup(groupID, {
+    switchWelcome: group.switchWelcome,
+    antilink: group.antilink,
+    chatBot: group.chatBot,
+    bangroup: group.bangroup,
+  });
   return group.switchWelcome;
 }
 
@@ -295,7 +318,12 @@ async function checkAntilink(groupID) {
     _setGroup(groupID, { antilink: false });
     return false;
   }
-  _setGroup(groupID, { antilink: group.antilink, switchWelcome: group.switchWelcome, chatBot: group.chatBot, bangroup: group.bangroup });
+  _setGroup(groupID, {
+    antilink: group.antilink,
+    switchWelcome: group.switchWelcome,
+    chatBot: group.chatBot,
+    bangroup: group.bangroup,
+  });
   return group.antilink;
 }
 
@@ -331,7 +359,12 @@ async function checkGroupChatbot(groupID) {
     _setGroup(groupID, { chatBot: false });
     return false;
   }
-  _setGroup(groupID, { chatBot: group.chatBot, antilink: group.antilink, switchWelcome: group.switchWelcome, bangroup: group.bangroup });
+  _setGroup(groupID, {
+    chatBot: group.chatBot,
+    antilink: group.antilink,
+    switchWelcome: group.switchWelcome,
+    bangroup: group.bangroup,
+  });
   return group.chatBot;
 }
 
@@ -367,7 +400,12 @@ async function checkBanGroup(groupID) {
     _setGroup(groupID, { bangroup: false });
     return false;
   }
-  _setGroup(groupID, { bangroup: group.bangroup, antilink: group.antilink, switchWelcome: group.switchWelcome, chatBot: group.chatBot });
+  _setGroup(groupID, {
+    bangroup: group.bangroup,
+    antilink: group.antilink,
+    switchWelcome: group.switchWelcome,
+    chatBot: group.chatBot,
+  });
   return group.bangroup;
 }
 
@@ -429,41 +467,43 @@ function clearGroupCache(groupId) {
   else groupCache.clear();
 }
 
-function clearSystemCache() { _delSys(); }
+function clearSystemCache() {
+  _delSys();
+}
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
 export {
-  banUser,            // BAN
-  checkBan,           // CHECK BAN STATUS
-  unbanUser,          // UNBAN
-  addMod,             // ADD MOD
-  checkMod,           // CHECK MOD STATUS
-  delMod,             // DEL MOD
-  setChar,            // SET CHAR ID
-  getChar,            // GET CHAR ID
-  activateChatBot,    // ACTIVATE PM CHATBOT
-  checkPmChatbot,     // CHECK PM CHATBOT STATUS
-  deactivateChatBot,  // DEACTIVATE PM CHATBOT
-  pushPlugin,         // PUSH NEW INSTALLED PLUGIN IN DATABASE
-  isPluginPresent,    // CHECK IF PLUGIN IS INSTALLED
-  delPlugin,          // DELETE A PLUGIN FROM THE DATABASE
-  setWelcome,         // SET WELCOME MESSAGE
-  checkWelcome,       // CHECK WELCOME MESSAGE STATUS
-  delWelcome,         // DELETE WELCOME MESSAGE
-  setAntilink,        // SET ANTILINK
-  checkAntilink,      // CHECK ANTILINK STATUS
-  delAntilink,        // DELETE ANTILINK
-  setGroupChatbot,    // SET GROUP CHATBOT
-  checkGroupChatbot,  // CHECK GROUP CHATBOT STATUS
-  delGroupChatbot,    // DELETE GROUP CHATBOT
-  setBotMode,         // SET BOT MODE
-  getBotMode,         // GET BOT MODE
-  banGroup,           // BAN GROUP
-  checkBanGroup,      // CHECK BAN STATUS OF A GROUP
-  unbanGroup,         // UNBAN GROUP
-  getPluginURLs,      // GET ALL INSTALLED PLUGIN URLs
-  getAllPlugins,       // GET ALL INSTALLED PLUGINS
-  clearUserCache,     // CLEAR USER CACHE (userId or all)
-  clearGroupCache,    // CLEAR GROUP CACHE (groupId or all)
-  clearSystemCache,   // CLEAR SYSTEM CACHE
+  activateChatBot, // UNBAN
+  addMod, // GET BOT MODE
+  banGroup,
+  banUser, // SET ANTILINK
+  checkAntilink, // BAN
+  checkBan, // BAN GROUP
+  checkBanGroup, // SET GROUP CHATBOT
+  checkGroupChatbot, // ADD MOD
+  checkMod, // ACTIVATE PM CHATBOT
+  checkPmChatbot, // SET WELCOME MESSAGE
+  checkWelcome, // CLEAR USER CACHE (userId or all)
+  clearGroupCache, // CLEAR GROUP CACHE (groupId or all)
+  clearSystemCache, // GET ALL INSTALLED PLUGINS
+  clearUserCache, // CHECK PM CHATBOT STATUS
+  deactivateChatBot, // CHECK ANTILINK STATUS
+  delAntilink, // CHECK GROUP CHATBOT STATUS
+  delGroupChatbot, // CHECK MOD STATUS
+  delMod, // CHECK IF PLUGIN IS INSTALLED
+  delPlugin, // CHECK WELCOME MESSAGE STATUS
+  delWelcome, // GET ALL INSTALLED PLUGIN URLs
+  getAllPlugins, // SET BOT MODE
+  getBotMode, // SET CHAR ID
+  getChar, // UNBAN GROUP
+  getPluginURLs, // PUSH NEW INSTALLED PLUGIN IN DATABASE
+  isPluginPresent, // DEACTIVATE PM CHATBOT
+  pushPlugin, // DELETE WELCOME MESSAGE
+  setAntilink, // DELETE GROUP CHATBOT
+  setBotMode, // DEL MOD
+  setChar, // DELETE ANTILINK
+  setGroupChatbot, // DELETE A PLUGIN FROM THE DATABASE
+  setWelcome, // CHECK BAN STATUS OF A GROUP
+  unbanGroup, // CHECK BAN STATUS
+  unbanUser,
 };

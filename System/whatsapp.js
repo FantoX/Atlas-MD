@@ -24,9 +24,7 @@ class WAConnection {
    * @returns
    */
   parseMention(text) {
-    return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(
-      (v) => v[1] + "@s.whatsapp.net"
-    );
+    return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map((v) => v[1] + "@s.whatsapp.net");
   }
 
   /**
@@ -38,9 +36,7 @@ class WAConnection {
   async downloadMediaMessage(message, fileName) {
     message = message?.msg ? message?.msg : message;
     let mimetype = (message.msg || message).mimetype || "";
-    let mtype = message.type
-      ? message.type.replace(/Message/gi, "")
-      : mimetype.split("/")[0];
+    let mtype = message.type ? message.type.replace(/Message/gi, "") : mimetype.split("/")[0];
     const stream = await downloadContentFromMessage(message, mtype);
     let buffer = Buffer.from([]);
     for await (const chunk of stream) {
@@ -68,9 +64,7 @@ class WAConnection {
   async downloadAndSaveMediaMessage(message, filename, attachExtension = true) {
     let quoted = message.msg ? message.msg : message;
     let mime = (message.msg || message).mimetype || "";
-    let messageType = message.mtype
-      ? message.mtype.replace(/Message/gi, "")
-      : mime.split("/")[0];
+    let messageType = message.mtype ? message.mtype.replace(/Message/gi, "") : mime.split("/")[0];
     const stream = await downloadContentFromMessage(quoted, messageType);
     let buffer = Buffer.from([]);
     for await (const chunk of stream) {
@@ -95,9 +89,7 @@ export const serialize = (Atlas, m, options = {}) => {
     m.id = m.key.id;
     m.isBot = m.id.startsWith("BAE5") && m.id.length == 16;
     m.isGroup = m.from.endsWith("@g.us");
-    m.sender = jidNormalizedUser(
-      (m.fromMe && Atlas.user?.id) || m.key.participant || m.from || ""
-    );
+    m.sender = jidNormalizedUser((m.fromMe && Atlas.user?.id) || m.key.participant || m.from || "");
   }
   if (m.message) {
     m.type = getContentType(m.message);
@@ -110,14 +102,11 @@ export const serialize = (Atlas, m, options = {}) => {
       m.quoted.msg = m.quoted[m.quoted.type];
       m.quoted.mentions = m.msg.contextInfo.mentionedJid;
       m.quoted.id = m.msg.contextInfo.stanzaId;
-      m.quoted.sender = jidNormalizedUser(
-        m.msg.contextInfo.participant || m.sender
-      );
+      m.quoted.sender = jidNormalizedUser(m.msg.contextInfo.participant || m.sender);
       m.quoted.from = m.from;
       m.quoted.isGroup = m.quoted.from.endsWith("@g.us");
       m.quoted.isBot = m.quoted.id.startsWith("BAE5") && m.quoted.id == 16;
-      m.quoted.fromMe =
-        m.quoted.sender == jidNormalizedUser(Atlas.user && Atlas.user?.id);
+      m.quoted.fromMe = m.quoted.sender == jidNormalizedUser(Atlas.user && Atlas.user?.id);
       m.quoted.text =
         m.quoted.msg?.text ||
         m.quoted.msg?.caption ||
@@ -135,10 +124,8 @@ export const serialize = (Atlas, m, options = {}) => {
         message: m.quoted,
         ...(m.quoted.isGroup ? { participant: m.quoted.sender } : {}),
       }));
-      m.quoted.delete = () =>
-        Atlas.sendMessage(m.quoted.from, { delete: vM.key });
-      m.quoted.download = (pathFile) =>
-        Atlas.downloadMediaMessage(m.quoted.msg, pathFile);
+      m.quoted.delete = () => Atlas.sendMessage(m.quoted.from, { delete: vM.key });
+      m.quoted.download = (pathFile) => Atlas.downloadMediaMessage(m.quoted.msg, pathFile);
     }
   }
   m.download = (pathFile) => Atlas.downloadMediaMessage(m.msg, pathFile);

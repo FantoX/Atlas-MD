@@ -9,8 +9,10 @@ import {
 import MongoAuth from "./System/MongoAuth/MongoAuth.js";
 import fs from "fs";
 import figlet from "figlet";
-import { join } from "path";
+import * as FileType from "file-type";
+import fs from "fs";
 import got from "got";
+import path, { dirname, join } from "path";
 import pino from "pino";
 import path from "path";
 import { fileTypeFromBuffer } from "file-type";
@@ -23,12 +25,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import express from "express";
-const app = express();
-const PORT = global.port;
-import welcomeLeft from "./System/Welcome.js";
-import { readcommands, commands } from "./System/ReadCommands.js";
-import core from "./Core.js";
-commands.prefix = global.prefa;
 import mongoose from "mongoose";
 import qrcode from "qrcode";
 import qrcodeTerminal from "qrcode-terminal";
@@ -106,6 +102,10 @@ const startAtlas = async () => {
     browser: ["Atlas", "Safari", "1.0.0"],
     auth: state,
     version,
+    getMessage: async (key) => {
+      if (key.remoteJid === "status@broadcast") return {};
+      return store.loadMessage(key.remoteJid, key.id);
+    },
   });
 
   store.bind(Atlas.ev);
@@ -276,10 +276,7 @@ const startAtlas = async () => {
     if (!jid) return jid;
     if (/:\d+@/gi.test(jid)) {
       let decode = jidDecode(jid) || {};
-      return (
-        (decode.user && decode.server && decode.user + "@" + decode.server) ||
-        jid
-      );
+      return (decode.user && decode.server && decode.user + "@" + decode.server) || jid;
     } else return jid;
   };
 
@@ -301,9 +298,7 @@ const startAtlas = async () => {
   ) => {
     let quoted = message.msg ? message.msg : message;
     let mime = (message.msg || message).mimetype || "";
-    let messageType = message.mtype
-      ? message.mtype.replace(/Message/gi, "")
-      : mime.split("/")[0];
+    let messageType = message.mtype ? message.mtype.replace(/Message/gi, "") : mime.split("/")[0];
     const stream = await downloadContentFromMessage(quoted, messageType);
     let buffer = Buffer.from([]);
     for await (const chunk of stream) {
@@ -317,9 +312,7 @@ const startAtlas = async () => {
 
   Atlas.downloadMediaMessage = async (message) => {
     let mime = (message.msg || message).mimetype || "";
-    let messageType = message.mtype
-      ? message.mtype.replace(/Message/gi, "")
-      : mime.split("/")[0];
+    let messageType = message.mtype ? message.mtype.replace(/Message/gi, "") : mime.split("/")[0];
     const stream = await downloadContentFromMessage(message, messageType);
     let buffer = Buffer.from([]);
     for await (const chunk of stream) {
