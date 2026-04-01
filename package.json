@@ -29,7 +29,6 @@
   "dependencies": {
     "@fantox01/lyrics-scraper": "^3.0.1",
     "@hapi/boom": "^10.0.1",
-    "@napi-rs/canvas": "^0.1.97",
     "@whiskeysockets/baileys": "^6.17.16",
     "axios": "^1.14.0",
     "canvacord": "^6.0.4",
@@ -55,8 +54,6 @@
     "hxz-api": "^1.0.1",
     "moment-timezone": "^0.6.1",
     "mongoose": "^9.3.3",
-    "mumaker": "^2.0.0",
-    "node-fetch": "^3.3.2",
     "node-id3": "^0.2.9",
     "openai": "^6.33.0",
     "path": "^0.12.7",
