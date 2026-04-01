@@ -496,7 +496,6 @@ export {
   getAllPlugins, // SET BOT MODE
   getBotMode, // SET CHAR ID
   getChar, // UNBAN GROUP
-  getGroupInvite,
   getPluginURLs, // PUSH NEW INSTALLED PLUGIN IN DATABASE
   isPluginPresent, // DEACTIVATE PM CHATBOT
   pushPlugin, // DELETE WELCOME MESSAGE
