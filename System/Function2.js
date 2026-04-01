@@ -1,18 +1,15 @@
-import @whiskeysockets/baileys from "@whiskeysockets/baileys";
-const { proto, delay, getContentType } = @whiskeysockets/baileys;
-import chalk from "chalk";
-import fs from "fs";
-const { unlink } = fs.promises;
+import baileysjs from "@whiskeysockets/baileys";
 import axios from "axios";
-import moment from "moment-timezone";
-import { sizeFormatter } from "human-readable";
-import util from "util";
-import Jimp from "jimp";
 import child_process from "child_process";
+import fs from "fs";
+import { sizeFormatter } from "human-readable";
+import * as Jimp from "jimp";
+import moment from "moment-timezone";
+import util from "util";
+const { proto, delay, getContentType } = baileysjs;
+const { unlink } = fs.promises;
 
-export const unixTimestampSeconds = (date = new Date()) =>
-  Math.floor(date.getTime() / 1000);
-
+export const unixTimestampSeconds = (date = new Date()) => Math.floor(date.getTime() / 1000);
 
 export const generateMessageTag = (epoch) => {
   let tag = unixTimestampSeconds().toString();
@@ -134,15 +131,7 @@ export const tanggal = (numer) => {
     "November",
     "December",
   ];
-  const myDays = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
+  const myDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   var tgl = new Date(numer);
   var day = tgl.getDate();
   const bulan = tgl.getMonth();
@@ -153,9 +142,7 @@ export const tanggal = (numer) => {
   let d = new Date();
   let locale = "id";
   let gmt = new Date(0).getTime() - new Date("1 January 1970").getTime();
-  let weton = ["Pahing", "Pon", "Wage", "Kliwon", "Legi"][
-    Math.floor((d * 1 + gmt) / 84600000) % 5
-  ];
+  let weton = ["Pahing", "Pon", "Wage", "Kliwon", "Legi"][Math.floor((d * 1 + gmt) / 84600000) % 5];
 
   return `${thisDay}, ${day} - ${myMonths[bulan]} - ${year}`;
 };
@@ -176,8 +163,7 @@ function format(...args) {
 }
 
 export const logic = (check, inp, out) => {
-  if (inp.length !== out.length)
-    throw new Error("Input and Output must have same length");
+  if (inp.length !== out.length) throw new Error("Input and Output must have same length");
   for (let i in inp) if (util.isDeepStrictEqual(check, inp[i])) return out[i];
   return null;
 };
@@ -224,9 +210,7 @@ export const getSizeMedia = (path) => {
 };
 
 export const parseMention = (text = "") => {
-  return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(
-    (v) => v[1] + "@s.whatsapp.net"
-  );
+  return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map((v) => v[1] + "@s.whatsapp.net");
 };
 
 export const GIFBufferToVideoBuffer = async (image) => {
@@ -238,10 +222,7 @@ export const GIFBufferToVideoBuffer = async (image) => {
   await sleep(4000);
 
   var buffer5 = await fs.readFileSync(`./System/Cache/${filename}.mp4`);
-  Promise.all([
-    unlink(`./System/Cache/${filename}.mp4`),
-    unlink(`./System/Cache/${filename}.gif`),
-  ]);
+  Promise.all([unlink(`./System/Cache/${filename}.mp4`), unlink(`./System/Cache/${filename}.gif`)]);
   return buffer5;
 };
 
@@ -261,11 +242,7 @@ export const smsg = (conn, m, store) => {
     m.fromMe = m.key.fromMe;
     m.isGroup = m.chat.endsWith("@g.us");
     m.sender = conn.decodeJid(
-      (m.fromMe && conn.user.id) ||
-        m.participant ||
-        m.key.participant ||
-        m.chat ||
-        ""
+      (m.fromMe && conn.user.id) || m.participant || m.key.participant || m.chat || ""
     );
     if (m.isGroup) m.participant = conn.decodeJid(m.key.participant) || "";
   }
@@ -279,14 +256,11 @@ export const smsg = (conn, m, store) => {
       m.message.conversation ||
       m.msg.caption ||
       m.msg.text ||
-      (m.mtype == "listResponseMessage" &&
-        m.msg.singleSelectReply.selectedRowId) ||
+      (m.mtype == "listResponseMessage" && m.msg.singleSelectReply.selectedRowId) ||
       (m.mtype == "buttonsResponseMessage" && m.msg.selectedButtonId) ||
       (m.mtype == "viewOnceMessage" && m.msg.caption) ||
       m.text;
-    let quoted = (m.quoted = m.msg.contextInfo
-      ? m.msg.contextInfo.quotedMessage
-      : null);
+    let quoted = (m.quoted = m.msg.contextInfo ? m.msg.contextInfo.quotedMessage : null);
     m.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : [];
     if (m.quoted) {
       let type = getContentType(quoted);
@@ -315,9 +289,7 @@ export const smsg = (conn, m, store) => {
         m.quoted.selectedDisplayText ||
         m.quoted.title ||
         "";
-      m.quoted.mentionedJid = m.msg.contextInfo
-        ? m.msg.contextInfo.mentionedJid
-        : [];
+      m.quoted.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : [];
       m.getQuotedObj = m.getQuotedMessage = async () => {
         if (!m.quoted.id) return false;
         let q = await store.loadMessage(m.chat, m.quoted.id, conn);
@@ -337,8 +309,7 @@ export const smsg = (conn, m, store) => {
        *
        * @returns
        */
-      m.quoted.delete = () =>
-        conn.sendMessage(m.quoted.chat, { delete: vM.key });
+      m.quoted.delete = () => conn.sendMessage(m.quoted.chat, { delete: vM.key });
 
       /**
        *

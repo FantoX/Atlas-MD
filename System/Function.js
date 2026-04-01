@@ -1,5 +1,5 @@
 import axios from "axios";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import BodyForm from "form-data";
 import fs from "fs";
 
@@ -56,9 +56,7 @@ export const webp2mp4File = async (path) => {
         })
           .then(({ data }) => {
             const $ = cheerio.load(data);
-            const result =
-              "https:" +
-              $("div#output > p.outfile > video > source").attr("src");
+            const result = "https:" + $("div#output > p.outfile > video > source").attr("src");
             resolve({
               status: true,
               message: "Created By MRHRTZ",
@@ -90,9 +88,7 @@ export const fetchUrl = async (url, options) => {
 };
 
 export const WAVersion = async () => {
-  let get = await fetchUrl(
-    "https://web.whatsapp.com/check-update?version=1&platform=web"
-  );
+  let get = await fetchUrl("https://web.whatsapp.com/check-update?version=1&platform=web");
   let version = [get.currentVersion.replace(/[.]/g, ", ")];
   return version;
 };

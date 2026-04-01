@@ -7,7 +7,7 @@ import atlasConnect, {
   makeInMemoryStore,
 } from "@whiskeysockets/baileys";
 import figlet from "figlet";
-import FileType from "file-type";
+import * as FileType from "file-type";
 import fs from "fs";
 import got from "got";
 import path, { dirname, join } from "path";
