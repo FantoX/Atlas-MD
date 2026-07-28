@@ -114,9 +114,53 @@ app.use(express.json());
 
 global.lidToJidMap = new Map();
 
+const MESSAGE_CACHE_TTL_MS =
+  Math.max(
+    30,
+    parseInt(process.env.MESSAGE_CACHE_TTL_MINUTES || "360", 10) || 360,
+  ) *
+  60 *
+  1000;
+const MESSAGE_CACHE_MAX_PER_CHAT = Math.max(
+  50,
+  parseInt(process.env.MESSAGE_CACHE_MAX_PER_CHAT || "500", 10) || 500,
+);
+
 const store = {
   contacts: {},
   messages: {},
+  messageTimes: {},
+  messageQueue: {},
+  pruneMessages(now = Date.now()) {
+    for (const [jid, queue] of Object.entries(store.messageQueue)) {
+      const messages = store.messages[jid];
+      const messageTimes = store.messageTimes[jid];
+      if (!messages || !messageTimes) {
+        delete store.messageQueue[jid];
+        delete store.messages[jid];
+        delete store.messageTimes[jid];
+        continue;
+      }
+
+      while (
+        queue.length > 0 &&
+        (queue.length > MESSAGE_CACHE_MAX_PER_CHAT ||
+          now - queue[0].cachedAt > MESSAGE_CACHE_TTL_MS)
+      ) {
+        const oldest = queue.shift();
+        if (messageTimes[oldest.id] === oldest.cachedAt) {
+          delete messages[oldest.id];
+          delete messageTimes[oldest.id];
+        }
+      }
+
+      if (queue.length === 0) {
+        delete store.messageQueue[jid];
+        delete store.messages[jid];
+        delete store.messageTimes[jid];
+      }
+    }
+  },
   bind(ev) {
     let _lidLogTimer = null;
     ev.on("contacts.upsert", (contacts) => {
@@ -169,8 +213,21 @@ const store = {
       for (const msg of messages) {
         if (!msg.key?.remoteJid || !msg.key?.id) continue;
         const jid = msg.key.remoteJid;
+        const cachedAt = Date.now();
         if (!store.messages[jid]) store.messages[jid] = {};
+        if (!store.messageTimes[jid]) store.messageTimes[jid] = {};
+        if (!store.messageQueue[jid]) store.messageQueue[jid] = [];
         store.messages[jid][msg.key.id] = msg;
+        store.messageTimes[jid][msg.key.id] = cachedAt;
+        store.messageQueue[jid].push({ id: msg.key.id, cachedAt });
+
+        while (store.messageQueue[jid].length > MESSAGE_CACHE_MAX_PER_CHAT) {
+          const oldest = store.messageQueue[jid].shift();
+          if (store.messageTimes[jid][oldest.id] === oldest.cachedAt) {
+            delete store.messages[jid][oldest.id];
+            delete store.messageTimes[jid][oldest.id];
+          }
+        }
       }
     });
   },
@@ -182,8 +239,209 @@ let QR_GENERATE = "invalid";
 let status = "initializing";
 let AtlasSocket = null; // module-level reference for pairing API
 let mongoAuth; // module-level so the GC/sync interval can access it
+let clearAuthState = null;
+let startPromise = null;
+let restartTimer = null;
+let pendingClearAuth = false;
+let reconnectAttempt = 0;
+let activeSocketGeneration = 0;
+let socketGeneration = 0;
+let socketStartedAt = 0;
+let lastConnectionUpdateAt = Date.now();
+let healthProbeFailures = 0;
+let healthProbeRunning = false;
+let stableConnectionTimer = null;
+let shuttingDown = false;
+let periodicSyncPromise = null;
+let sessionSyncPaused = false;
 
-const startAtlas = async () => {
+const KEEP_ALIVE_INTERVAL_MS = 25_000;
+const WATCHDOG_INTERVAL_MS =
+  Math.max(
+    30,
+    Math.min(
+      600,
+      parseInt(process.env.WATCHDOG_INTERVAL_SECONDS || "60", 10) || 60,
+    ),
+  ) * 1000;
+const HEALTH_QUERY_TIMEOUT_MS = 15_000;
+const HEALTH_FAILURE_THRESHOLD = 2;
+const CONNECT_STALL_TIMEOUT_MS = 180_000;
+const SOCKET_CLOSE_TIMEOUT_MS = 5_000;
+const RECONNECT_BASE_DELAY_MS = 3_000;
+const RECONNECT_MAX_DELAY_MS = 60_000;
+const STABLE_CONNECTION_MS = 300_000;
+
+const isCurrentSocket = (socket, generation) =>
+  AtlasSocket === socket && activeSocketGeneration === generation;
+
+const clearStableConnectionTimer = () => {
+  if (stableConnectionTimer) {
+    clearTimeout(stableConnectionTimer);
+    stableConnectionTimer = null;
+  }
+};
+
+const markConnectionStableLater = (socket, generation) => {
+  clearStableConnectionTimer();
+  stableConnectionTimer = setTimeout(() => {
+    if (isCurrentSocket(socket, generation) && status === "open") {
+      reconnectAttempt = 0;
+      console.log(chalk.green(`[ ATLAS ] Connection stable - backoff reset`));
+    }
+  }, STABLE_CONNECTION_MS);
+  stableConnectionTimer.unref?.();
+};
+
+const closeActiveSocket = async (reason) => {
+  const socket = AtlasSocket;
+  if (!socket) return;
+
+  AtlasSocket = null;
+  activeSocketGeneration = 0;
+  socketStartedAt = 0;
+  healthProbeFailures = 0;
+  clearStableConnectionTimer();
+
+  try {
+    const endPromise = socket.end(
+      new Boom(reason, {
+        statusCode: DisconnectReason.connectionClosed,
+      }),
+    );
+    const closedCleanly = await Promise.race([
+      endPromise.then(() => true),
+      new Promise((resolve) =>
+        setTimeout(() => resolve(false), SOCKET_CLOSE_TIMEOUT_MS),
+      ),
+    ]);
+
+    if (!closedCleanly) {
+      console.log(
+        chalk.yellow(
+          `[ ATLAS ] Socket close timed out - forcing WebSocket termination`,
+        ),
+      );
+      socket.ws?.socket?.terminate?.();
+      await Promise.race([
+        endPromise,
+        new Promise((resolve) => setTimeout(resolve, 1_000)),
+      ]);
+    }
+  } catch (err) {
+    console.error(
+      chalk.redBright(`[ ATLAS ] Socket cleanup error: ${err.message}`),
+    );
+  }
+};
+
+const getReconnectDelay = (immediate) => {
+  if (immediate && reconnectAttempt === 1) return 250;
+  const exponentialDelay = Math.min(
+    RECONNECT_MAX_DELAY_MS,
+    RECONNECT_BASE_DELAY_MS * 2 ** Math.max(0, reconnectAttempt - 1),
+  );
+  const jitter = Math.floor(exponentialDelay * 0.2 * Math.random());
+  return exponentialDelay + jitter;
+};
+
+const scheduleReconnect = (
+  reason,
+  { clearAuth = false, immediate = false } = {},
+) => {
+  if (shuttingDown) return;
+
+  pendingClearAuth = pendingClearAuth || clearAuth;
+  if (restartTimer) {
+    console.log(
+      chalk.gray(`[ ATLAS ] Reconnect already scheduled - ${reason}`),
+    );
+    return;
+  }
+
+  reconnectAttempt += 1;
+  const delay = getReconnectDelay(immediate);
+  status = "reconnecting";
+  QR_GENERATE = "invalid";
+
+  console.log(
+    chalk.yellow(
+      `[ ATLAS ] Reconnect scheduled in ${(delay / 1000).toFixed(1)}s ` +
+        `(attempt ${reconnectAttempt}) - ${reason}`,
+    ),
+  );
+
+  restartTimer = setTimeout(async () => {
+    restartTimer = null;
+    const shouldClearAuth = pendingClearAuth;
+    pendingClearAuth = false;
+
+    try {
+      await closeActiveSocket(`Reconnecting: ${reason}`);
+      if (shouldClearAuth && clearAuthState) {
+        sessionSyncPaused = true;
+        await periodicSyncPromise;
+        await clearAuthState();
+      }
+
+      const inFlightStart = startPromise;
+      if (inFlightStart) {
+        await inFlightStart;
+      }
+      await startAtlas(`reconnect: ${reason}`);
+    } catch (err) {
+      console.error(
+        chalk.redBright(`[ ATLAS ] Reconnect cycle failed: ${err.message}`),
+      );
+      scheduleReconnect(`reconnect cycle failed: ${err.message}`, {
+        clearAuth: shouldClearAuth,
+      });
+    } finally {
+      sessionSyncPaused = false;
+    }
+  }, delay);
+};
+
+async function startAtlas(trigger = "initial") {
+  if (shuttingDown) return null;
+  if (startPromise) return startPromise;
+  if (AtlasSocket?.ws?.isOpen && status === "open") return AtlasSocket;
+
+  status = "connecting";
+  lastConnectionUpdateAt = Date.now();
+
+  startPromise = connectAtlas(trigger)
+    .catch((err) => {
+      console.error(
+        chalk.redBright(`[ ATLAS ] Connection startup failed: ${err.message}`),
+      );
+      scheduleReconnect(`startup failed: ${err.message}`);
+      return null;
+    })
+    .finally(() => {
+      startPromise = null;
+    });
+
+  return startPromise;
+}
+
+const connectAtlas = async (trigger) => {
+  console.log(chalk.cyan(`[ ATLAS ] Starting connection (${trigger})...`));
+  // ── Silently wipe the Cache folder on every boot / restart ──────────────
+  try {
+    const cacheDir = path.join(__dirname, "System", "Cache");
+    if (fs.existsSync(cacheDir)) {
+      for (const entry of fs.readdirSync(cacheDir)) {
+        if (entry === ".gitkeep") continue; // preserve git tracker
+        const entryPath = path.join(cacheDir, entry);
+        fs.rmSync(entryPath, { recursive: true, force: true });
+      }
+    }
+  } catch (_) {
+    // intentionally silent
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
   try {
     await mongoose.connect(mongodb);
     console.log(chalk.green(`[ ATLAS ] MongoDB connected ✓`));
@@ -192,8 +450,10 @@ const startAtlas = async () => {
       chalk.redBright(`[ EXCEPTION ] MongoDB error: ${err.message}`),
     );
   }
-  mongoAuth = new MongoAuth(sessionId);
-  const { state, saveCreds, clearState } = await mongoAuth.init();
+  const nextMongoAuth = new MongoAuth(sessionId);
+  const { state, saveCreds, clearState } = await nextMongoAuth.init();
+  mongoAuth = nextMongoAuth;
+  clearAuthState = clearState;
   console.log(
     figlet.textSync("ATLAS", {
       font: "Standard",
@@ -242,6 +502,7 @@ const startAtlas = async () => {
 
   const { version, isLatest } = await fetchLatestBaileysVersion();
 
+  const generation = ++socketGeneration;
   const Atlas = makeWASocket({
     logger: pino({ level: "silent" }),
     browser: ["Ubuntu", "Chrome", "20.0.04"],
@@ -250,10 +511,14 @@ const startAtlas = async () => {
     // Send a WebSocket ping every 25 s so the server never silently drops
     // an idle connection. If the pong does not come back Baileys fires the
     // normal "connection.update" → "close" event, which restarts the bot.
-    keepAliveIntervalMs: 25_000,
+    keepAliveIntervalMs: KEEP_ALIVE_INTERVAL_MS,
   });
 
   AtlasSocket = Atlas; // expose for pairing API
+  activeSocketGeneration = generation;
+  socketStartedAt = Date.now();
+  lastConnectionUpdateAt = socketStartedAt;
+  healthProbeFailures = 0;
 
   store.bind(Atlas.ev);
 
@@ -323,49 +588,46 @@ const startAtlas = async () => {
   Atlas.ev.on("creds.update", saveCreds);
   Atlas.serializeM = (m) => smsg(Atlas, m, store);
   Atlas.ev.on("connection.update", async (update) => {
+    if (!isCurrentSocket(Atlas, generation)) return;
+
     const { lastDisconnect, connection, qr } = update;
+    lastConnectionUpdateAt = Date.now();
+
     if (connection) {
       status = connection;
       console.info(`[ ATLAS ] Server Status => ${connection}`);
     }
 
-    if (connection === "close") {
-      let reason = new Boom(lastDisconnect?.error)?.output.statusCode;
-      if (reason === DisconnectReason.badSession) {
-        console.log(
-          `[ ATLAS ] Bad session detected — clearing and restarting for fresh QR scan...\n`,
-        );
-        await clearState();
-        startAtlas();
-      } else if (reason === DisconnectReason.connectionClosed) {
-        console.log("[ ATLAS ] Connection closed, reconnecting....\n");
-        startAtlas();
-      } else if (reason === DisconnectReason.connectionLost) {
-        console.log("[ ATLAS ] Connection Lost from Server, reconnecting...\n");
-        startAtlas();
-      } else if (reason === DisconnectReason.connectionReplaced) {
-        console.log(
-          "[ ATLAS ] Connection Replaced, Another New Session Opened, Please Close Current Session First!\n",
-        );
-        process.exit();
-      } else if (reason === DisconnectReason.loggedOut) {
-        console.log(
-          `[ ATLAS ] Device logged out — clearing session and restarting for fresh QR scan...\n`,
-        );
-        await clearState();
-        startAtlas();
-      } else if (reason === DisconnectReason.restartRequired) {
-        console.log("[ ATLAS ] Server Restarting...\n");
-        startAtlas();
-      } else if (reason === DisconnectReason.timedOut) {
-        console.log("[ ATLAS ] Connection Timed Out, Trying to Reconnect...\n");
-        startAtlas();
-      } else {
-        console.log(
-          `[ ATLAS ] Server Disconnected: "It's either safe disconnect or WhatsApp Account got banned !\n"`,
-        );
-      }
+    if (connection === "open") {
+      QR_GENERATE = "invalid";
+      healthProbeFailures = 0;
+      markConnectionStableLater(Atlas, generation);
     }
+
+    if (connection === "close") {
+      const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
+      const reasonName = DisconnectReason[reason] || `unknown (${reason})`;
+      const shouldClearAuth =
+        reason === DisconnectReason.badSession ||
+        reason === DisconnectReason.loggedOut;
+
+      AtlasSocket = null;
+      activeSocketGeneration = 0;
+      socketStartedAt = 0;
+      healthProbeFailures = 0;
+      clearStableConnectionTimer();
+
+      console.log(
+        chalk.yellow(
+          `[ ATLAS ] Connection closed - ${reasonName}. Recovery starting.`,
+        ),
+      );
+      scheduleReconnect(`disconnect: ${reasonName}`, {
+        clearAuth: shouldClearAuth,
+        immediate: reason === DisconnectReason.restartRequired,
+      });
+    }
+
     if (qr) {
       QR_GENERATE = qr;
       status = "qr";
@@ -374,10 +636,12 @@ const startAtlas = async () => {
   });
 
   Atlas.ev.on("group-participants.update", async (m) => {
+    if (!isCurrentSocket(Atlas, generation)) return;
     welcomeLeft(Atlas, m);
   });
 
   Atlas.ev.on("messages.upsert", async (chatUpdate) => {
+    if (!isCurrentSocket(Atlas, generation)) return;
     if (chatUpdate.type !== "notify") return;
     const msg = chatUpdate.messages?.[0];
     if (!msg) return;
@@ -392,6 +656,7 @@ const startAtlas = async () => {
 
   // ─── Anti-Delete: catch "delete for everyone" and resend ───────────────────
   Atlas.ev.on("messages.update", async (updates) => {
+    if (!isCurrentSocket(Atlas, generation)) return;
     for (const { key, update } of updates) {
       try {
         // Only care about group "delete for everyone" events
@@ -614,6 +879,7 @@ const startAtlas = async () => {
   };
 
   Atlas.ev.on("contacts.update", (update) => {
+    if (!isCurrentSocket(Atlas, generation)) return;
     for (let contact of update) {
       let id = Atlas.decodeJid(contact.id);
       if (store && store.contacts)
@@ -817,9 +1083,11 @@ const startAtlas = async () => {
     );
     return fs.promises.unlink(pathFile);
   };
+
+  return Atlas;
 };
 
-startAtlas();
+void startAtlas();
 
 // Dynamic garbage collection — interval configurable via GC_INTERVAL_MINUTES env (default: 30)
 const GC_INTERVAL_MINUTES = Math.max(
@@ -828,37 +1096,129 @@ const GC_INTERVAL_MINUTES = Math.max(
 );
 // Periodic MongoDB session sync — runs at the same interval as GC
 const runPeriodicSync = async () => {
-  if (mongoAuth) {
-    await mongoAuth
-      .pushToMongoDB()
-      .catch((err) =>
-        console.error(
-          chalk.redBright(
-            `[ ATLAS ] MongoDB session sync error: ${err.message}`,
-          ),
+  if (sessionSyncPaused || !mongoAuth || periodicSyncPromise) {
+    return periodicSyncPromise;
+  }
+
+  periodicSyncPromise = mongoAuth
+    .pushToMongoDB()
+    .then(() => console.log(chalk.cyan(`[ ATLAS ] Session synced to MongoDB`)))
+    .catch((err) =>
+      console.error(
+        chalk.redBright(`[ ATLAS ] MongoDB session sync error: ${err.message}`),
+      ),
+    )
+    .finally(() => {
+      periodicSyncPromise = null;
+    });
+
+  return periodicSyncPromise;
+};
+
+const runWatchdog = async () => {
+  if (shuttingDown || healthProbeRunning) return;
+
+  const socket = AtlasSocket;
+  const generation = activeSocketGeneration;
+
+  if (!socket) {
+    const startingFor = Date.now() - lastConnectionUpdateAt;
+    if (startPromise && startingFor > CONNECT_STALL_TIMEOUT_MS) {
+      console.error(
+        chalk.redBright(
+          `[ ATLAS ] Connection startup stalled for ` +
+            `${Math.round(startingFor / 1000)}s - exiting for supervisor restart`,
         ),
       );
-    console.log(chalk.cyan(`[ ATLAS ] Session synced to MongoDB`));
-  }
-};
+      process.exit(1);
+    }
 
-const runWatchdog = () => {
-  if (!AtlasSocket) return;
-  // WebSocket readyState: 0=CONNECTING 1=OPEN 2=CLOSING 3=CLOSED
-  const wsReady = AtlasSocket.ws?.readyState;
-  if (wsReady !== undefined && wsReady !== 1 && status === "open") {
-    console.log(
+    if (!startPromise && !restartTimer && status !== "reconnecting") {
+      scheduleReconnect("watchdog found no active socket");
+    }
+    return;
+  }
+
+  if (status === "connecting") {
+    const connectingFor = Date.now() - socketStartedAt;
+    if (socketStartedAt && connectingFor > CONNECT_STALL_TIMEOUT_MS) {
+      scheduleReconnect(
+        `connection stalled for ${Math.round(connectingFor / 1000)}s`,
+        { immediate: true },
+      );
+    }
+    return;
+  }
+
+  if (status !== "open") return;
+
+  if (!socket.ws?.isOpen) {
+    scheduleReconnect("watchdog found WebSocket closed", { immediate: true });
+    return;
+  }
+
+  healthProbeRunning = true;
+  try {
+    const response = await socket.query(
+      {
+        tag: "iq",
+        attrs: {
+          to: "s.whatsapp.net",
+          type: "get",
+          xmlns: "w:p",
+        },
+        content: [{ tag: "ping", attrs: {} }],
+      },
+      HEALTH_QUERY_TIMEOUT_MS,
+    );
+
+    if (!response) {
+      throw new Error("WhatsApp ping timed out");
+    }
+
+    if (isCurrentSocket(socket, generation)) {
+      healthProbeFailures = 0;
+      lastConnectionUpdateAt = Date.now();
+    }
+  } catch (err) {
+    if (!isCurrentSocket(socket, generation)) return;
+
+    healthProbeFailures += 1;
+    console.error(
       chalk.yellow(
-        `[ ATLAS ] Session Watchdog: silent disconnect detected (wsState=${wsReady}) — reconnecting...`,
+        `[ ATLAS ] Watchdog probe failed ${healthProbeFailures}/` +
+          `${HEALTH_FAILURE_THRESHOLD}: ${err.message}`,
       ),
     );
-    status = "reconnecting";
-    startAtlas();
+
+    if (healthProbeFailures >= HEALTH_FAILURE_THRESHOLD) {
+      scheduleReconnect("WhatsApp health probes failed", { immediate: true });
+    }
+  } finally {
+    healthProbeRunning = false;
   }
 };
 
+const watchdogTimer = setInterval(() => {
+  void runWatchdog();
+}, WATCHDOG_INTERVAL_MS);
+const messageCacheTimer = setInterval(
+  () => store.pruneMessages(),
+  Math.min(
+    10 * 60 * 1000,
+    Math.max(60_000, Math.floor(MESSAGE_CACHE_TTL_MS / 2)),
+  ),
+);
+console.log(
+  chalk.cyan(
+    `[ ATLAS ] Connection watchdog active - probing every ` +
+      `${WATCHDOG_INTERVAL_MS / 1000}s`,
+  ),
+);
+
+let maintenanceTimer;
 if (typeof global.gc === "function") {
-  setInterval(
+  maintenanceTimer = setInterval(
     async () => {
       global.gc();
       console.log(
@@ -867,7 +1227,6 @@ if (typeof global.gc === "function") {
         ),
       );
       await runPeriodicSync();
-      runWatchdog();
     },
     GC_INTERVAL_MINUTES * 60 * 1000,
   );
@@ -880,22 +1239,51 @@ if (typeof global.gc === "function") {
   console.warn(
     "[ ATLAS ] GC not available. Start the bot with 'npm start' to enable garbage collection.",
   );
-  // Still run session sync and watchdog even without GC
-  setInterval(
+  // Still run session sync even without GC.
+  maintenanceTimer = setInterval(
     () => {
-      runPeriodicSync();
-      runWatchdog();
+      void runPeriodicSync();
     },
     GC_INTERVAL_MINUTES * 60 * 1000,
   );
 }
+
+const shutdown = async (signal) => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  status = "stopping";
+  console.log(chalk.yellow(`[ ATLAS ] ${signal} received - shutting down`));
+
+  if (restartTimer) clearTimeout(restartTimer);
+  clearInterval(watchdogTimer);
+  clearInterval(messageCacheTimer);
+  clearInterval(maintenanceTimer);
+  clearStableConnectionTimer();
+
+  await Promise.race([
+    runPeriodicSync(),
+    new Promise((resolve) => setTimeout(resolve, 10_000)),
+  ]);
+  await closeActiveSocket(`Process shutdown: ${signal}`);
+  await mongoose.disconnect().catch(() => {});
+  process.exit(0);
+};
+
+process.once("SIGINT", () => void shutdown("SIGINT"));
+process.once("SIGTERM", () => void shutdown("SIGTERM"));
 
 app.use("/", express.static(join(__dirname, "Frontend")));
 
 // --- GUI API Endpoints ---
 
 app.get("/api/status", (req, res) => {
-  res.json({ status });
+  res.json({
+    status,
+    websocketOpen: Boolean(AtlasSocket?.ws?.isOpen),
+    reconnectAttempt,
+    healthProbeFailures,
+    lastConnectionUpdate: new Date(lastConnectionUpdateAt).toISOString(),
+  });
 });
 
 app.get("/api/qr", async (req, res) => {

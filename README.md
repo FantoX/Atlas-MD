@@ -104,6 +104,9 @@
 | `AUTHOR`              | Sticker author name (default: `by: Team Atlas`)                                               | Optional    |
 | `PORT`                | Server port (default: `10000`)                                                                | Optional    |
 | `GC_INTERVAL_MINUTES` | MongoDB garbage collection interval in minutes (default: `5`)                                 | Optional    |
+| `WATCHDOG_INTERVAL_SECONDS` | WhatsApp server health-probe interval in seconds (default: `60`)                         | Optional    |
+| `MESSAGE_CACHE_TTL_MINUTES` | Anti-delete message retention in minutes (default: `360`, minimum: `30`)                  | Optional    |
+| `MESSAGE_CACHE_MAX_PER_CHAT` | Maximum anti-delete messages retained per chat (default: `500`, minimum: `50`)            | Optional    |
 
 ---
 

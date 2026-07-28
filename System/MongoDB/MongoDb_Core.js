@@ -8,12 +8,13 @@ import mongoose from "mongoose";
 
 // ─── In-Memory Cache ──────────────────────────────────────────────────────────
 // TTLs are configurable via env; sensible defaults shown below.
-const USER_CACHE_TTL = parseInt(process.env.USER_CACHE_TTL_MS || "300000", 10); // 5 min
-const GROUP_CACHE_TTL = parseInt(
-  process.env.GROUP_CACHE_TTL_MS || "300000",
-  10,
-); // 5 min
-const SYSTEM_CACHE_TTL = parseInt(process.env.SYS_CACHE_TTL_MS || "600000", 10); // 10 min
+const positiveEnvMs = (name, fallback) => {
+  const value = Number.parseInt(process.env[name] || "", 10);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+};
+const USER_CACHE_TTL = positiveEnvMs("USER_CACHE_TTL_MS", 300_000); // 5 min
+const GROUP_CACHE_TTL = positiveEnvMs("GROUP_CACHE_TTL_MS", 300_000); // 5 min
+const SYSTEM_CACHE_TTL = positiveEnvMs("SYS_CACHE_TTL_MS", 600_000); // 10 min
 
 // user cache  : Map<userId, { ban, addedMods, expiresAt }>
 // group cache : Map<groupId, { antilink, bangroup, chatBot, switchWelcome, expiresAt }>
@@ -25,7 +26,9 @@ let systemCache = { data: null, expiresAt: 0 };
 // ── helpers ──────────────────────────────────────────────────────────────────
 function _getUser(userId) {
   const e = userCache.get(userId);
-  return e && Date.now() < e.expiresAt ? e : null;
+  if (e && Date.now() < e.expiresAt) return e;
+  if (e) userCache.delete(userId);
+  return null;
 }
 function _setUser(userId, fields) {
   const prev = userCache.get(userId) || {};
@@ -41,7 +44,9 @@ function _delUser(userId) {
 
 function _getGroup(groupId) {
   const e = groupCache.get(groupId);
-  return e && Date.now() < e.expiresAt ? e : null;
+  if (e && Date.now() < e.expiresAt) return e;
+  if (e) groupCache.delete(groupId);
+  return null;
 }
 function _setGroup(groupId, fields) {
   const prev = groupCache.get(groupId) || {};
@@ -68,6 +73,21 @@ function _delSys() {
   systemCache.data = null;
   systemCache.expiresAt = 0;
 }
+
+const cacheSweepTimer = setInterval(
+  () => {
+    const now = Date.now();
+    for (const [userId, entry] of userCache) {
+      if (now >= entry.expiresAt) userCache.delete(userId);
+    }
+    for (const [groupId, entry] of groupCache) {
+      if (now >= entry.expiresAt) groupCache.delete(groupId);
+    }
+    if (systemCache.data && now >= systemCache.expiresAt) _delSys();
+  },
+  Math.max(60_000, Math.min(USER_CACHE_TTL, GROUP_CACHE_TTL, 5 * 60_000)),
+);
+cacheSweepTimer.unref?.();
 
 // ─── User Functions ───────────────────────────────────────────────────────────
 

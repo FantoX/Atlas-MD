@@ -33,7 +33,6 @@ export default class MongoAuth {
    * Returns { state, saveCreds, clearState } for makeWASocket.
    */
   async init() {
-    // ── Announce which session key is being started ──────────────────────
     console.log(`[ ATLAS ] Starting session: "${this.sessionId}"`);
 
     const localExists = await this._localExists();
@@ -45,7 +44,6 @@ export default class MongoAuth {
           `[ ATLAS ] [${this.sessionId}] Session not found locally — downloading from MongoDB...`,
         );
 
-        // ── Try download; if it throws, wipe any partial files ────────────
         try {
           await this._downloadToLocal();
         } catch (err) {
@@ -55,7 +53,6 @@ export default class MongoAuth {
           await fs.promises.rm(this.dir, { recursive: true, force: true });
         }
 
-        // ── Post-download integrity check: creds.json must now exist ─────
         const downloadOk = await this._localExists();
         if (downloadOk) {
           console.log(
@@ -137,8 +134,6 @@ export default class MongoAuth {
     );
   }
 
-  // ── Private helpers ──────────────────────────────────────────────────────
-
   async _localExists() {
     const credsPath = path.join(this.dir, "creds.json");
     try {
@@ -153,7 +148,6 @@ export default class MongoAuth {
     try {
       const doc = await sessionSchema.findOne({ sessionId: this.sessionId });
       if (!doc) return false;
-      // New format: files map — require at least one non-empty file value
       if (
         doc.files &&
         Object.keys(doc.files).some(
@@ -161,7 +155,6 @@ export default class MongoAuth {
         )
       )
         return true;
-      // Legacy format: single session JSON blob
       if (doc.session && doc.session.length > 0) return true;
       return false;
     } catch {
@@ -173,13 +166,11 @@ export default class MongoAuth {
     const doc = await sessionSchema.findOne({ sessionId: this.sessionId });
     if (!doc) return;
 
-    // ── Legacy format migration ──────────────────────────────────────────
     if (doc.session && !doc.files) {
       await this._migrateLegacySession(doc.session);
       return;
     }
 
-    // ── New format ───────────────────────────────────────────────────────
     if (!doc.files) return;
     await fs.promises.mkdir(this.dir, { recursive: true });
     for (const [filename, base64Content] of Object.entries(doc.files)) {
@@ -243,14 +234,12 @@ export default class MongoAuth {
   }
 
   async _clearSession() {
-    // Remove local session directory
     await fs.promises.rm(this.dir, { recursive: true, force: true });
 
-    // Remove MongoDB entry
     try {
       await sessionSchema.deleteOne({ sessionId: this.sessionId });
     } catch {
-      // Non-fatal — local is already cleared
+      // local is already cleared
     }
 
     console.log(`[ ATLAS ] Session cleared from local storage and MongoDB.`);

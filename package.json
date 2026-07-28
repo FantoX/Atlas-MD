@@ -1,6 +1,6 @@
 {
   "name": "atlas",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "The future of WhatsApp bots with plugin support.",
   "type": "module",
   "main": "index.js",
@@ -33,7 +33,7 @@
     "@google/genai": "^0.7.0",
     "@hapi/boom": "^10.0.1",
     "@napi-rs/canvas": "^0.1.97",
-    "@whiskeysockets/baileys": "7.0.0-rc.9",
+    "@whiskeysockets/baileys": "7.0.0-rc13",
     "axios": "^1.14.0",
     "canvacord": "^6.0.4",
     "chalk": "^5.6.2",

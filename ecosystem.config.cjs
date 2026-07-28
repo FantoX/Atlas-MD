@@ -11,8 +11,11 @@ module.exports = {
       },
       // interpreter: "bun",
       node_args: "--max-old-space-size=8000 --expose-gc", // ignored when using Bun
-      restart_delay: 3000,
       autorestart: true,
+      min_uptime: 10000,
+      max_restarts: 100,
+      exp_backoff_restart_delay: 1000,
+      kill_timeout: 30000,
       watch: false,
     },
   ],
