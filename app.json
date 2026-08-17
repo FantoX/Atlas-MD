@@ -27,7 +27,7 @@
       "description": "A random string for your bot session. Which works as an OTP to get qr code. You have to change session every time to get a new qr."
     },
     "MODS": {
-      "description": "Put any phone number without + , () and spaces \",\" Ex: 918101187835,929864781259 )",
+      "description": "Put any phone number without + , () and spaces \",\" Ex: 9181xxxxxxxx,9298xxxxxxxx )",
       "required": false
     },
     "TENOR_API_KEY": {
