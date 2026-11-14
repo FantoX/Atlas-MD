@@ -13,7 +13,7 @@ async function readcommands() {
       const module = await import(`../Plugins/${file}`);
       const cmdfiles = module.default;
       if (!cmdfiles || !cmdfiles.name) {
-        console.warn(`[ ATLAS ] Skipping ${file}: missing default export or name`);
+        console.warn(`[ KAMI ] Skipping ${file}: missing default export or name`);
         continue;
       }
       commands.set(cmdfiles.name, cmdfiles);
