@@ -11,10 +11,10 @@
 /                                                                                   / 
 /-----------------------------------------------------------------------------------/
 / Author and Main Developer: FantoX                                                 /
-/ Github: https://github.com/FantoX001/Atlas-MD                                     /
-/ Powered By: Team ATLAS                                                            /
+/ Github: https://github.com/kamran522/Atlas-MD                                     /
+/ Powered By: Kamran Hasil                                                            /
 /-----------------------------------------------------------------------------------/
-/             Meet Team ATLAS who holds all rights to this repository:              /
+/             Meet Kamran Hasil who holds all rights to this repository:              /
 /                                                                                   /
 / 1. Pratyush - https://github.com/pratyush4932                                     /
 / 2. Ahmii - https://github.com/Ahmii-kun                                           /               
@@ -31,7 +31,7 @@
 
 
 /* ---Added Anime Character list---  /
- 0 --- Atlas MD
+ 0 --- KAMI MD
  1 --- Power
  2 --- Makima
  3 --- Denji
@@ -65,7 +65,7 @@ Don't forget to change "charlist.js" and "setchar.js" inside "Plugins\moderator.
 
 
 global.charID0 = {
-    botName : "Atlas",
+    botName : "KAMI",
     botVideo : "https://graph.org/file/e3b2ee218b98b8679bf98.mp4",
     botImage1 : "https://i.imgur.com/MClOeqe.jpeg",
     botImage2 : "https://i.imgur.com/MClOeqe.jpeg",
