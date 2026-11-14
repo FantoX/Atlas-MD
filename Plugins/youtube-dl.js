@@ -27,8 +27,8 @@ export default {
   uniquecommands: ["play", "mp3", "mp4"],
   description: "Advanced YouTube system (API based)",
 
-  start: async (Atlas, m, { inputCMD, text, doReact, prefix }) => {
-    const botName = global.botName || "ATLAS";
+  start: async (KAMI, m, { inputCMD, text, doReact, prefix }) => {
+    const botName = global.botName || "KAMI";
     let query = text?.trim();
 
     if (!query && m.quoted?.text) {
@@ -66,7 +66,7 @@ export default {
 
             videoUrl = search.data.result[0].link;
 
-            await Atlas.sendMessage(
+            await KAMI.sendMessage(
               m.from,
               {
                 image: { url: search.data.result[0].imageUrl },
@@ -83,7 +83,7 @@ export default {
 
           if (!videoData.status) throw new Error("API failed");
 
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               video: { url: videoData.result.download_url },
@@ -119,7 +119,7 @@ export default {
             mp3: audioMp3,
           } = audioData.result;
 
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               audio: { url: audioMp3 },
@@ -157,7 +157,7 @@ export default {
             mp3: playMp3,
           } = playData.result;
 
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               image: { url: playThumbnail },
@@ -169,7 +169,7 @@ export default {
             { quoted: m },
           );
 
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               audio: { url: playMp3 },
