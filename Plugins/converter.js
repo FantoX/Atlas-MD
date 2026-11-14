@@ -37,7 +37,7 @@ export default {
   ],
   description: "All converter related commands",
   start: async (
-    Atlas,
+    KAMI,
     m,
     { inputCMD, text, quoted, doReact, prefix, mime },
   ) => {
@@ -51,12 +51,12 @@ export default {
           );
         }
         await doReact("🎴");
-        let mediaMess = await Atlas.downloadAndSaveMediaMessage(quoted);
+        let mediaMess = await KAMI.downloadAndSaveMediaMessage(quoted);
         let ran = await getRandom(".png");
         execFile(ffmpegPath, ["-i", mediaMess, ran], (err) => {
           fs.unlinkSync(mediaMess);
           if (err) {
-            Atlas.sendMessage(
+            KAMI.sendMessage(
               m.from,
               {
                 text: `Please mention a *Non-animated* sticker to process ! \n\nOr use *${prefix}togif* / *${prefix}tomp4* to process *Animated* sticker !`,
@@ -66,7 +66,7 @@ export default {
             return;
           }
           let buffer = fs.readFileSync(ran);
-          Atlas.sendMessage(
+          KAMI.sendMessage(
             m.from,
             { image: buffer, caption: `_Converted by:_  *${botName}*\n` },
             { quoted: m },
@@ -83,7 +83,7 @@ export default {
           );
         }
         await doReact("🎴");
-        let mediaMess2 = await Atlas.downloadAndSaveMediaMessage(quoted);
+        let mediaMess2 = await KAMI.downloadAndSaveMediaMessage(quoted);
         let webpToMp4 = await webp2mp4File(mediaMess2);
 
         // Validation to prevent crash if result is null
@@ -95,7 +95,7 @@ export default {
           );
         }
 
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           {
             video: { url: webpToMp4.result },
@@ -114,7 +114,7 @@ export default {
           );
         }
         await doReact("🎴");
-        let mediaMess3 = await Atlas.downloadAndSaveMediaMessage(quoted);
+        let mediaMess3 = await KAMI.downloadAndSaveMediaMessage(quoted);
         let webpToMp42 = await webp2mp4File(mediaMess3);
 
         // Validation to prevent crash if result is null
@@ -126,7 +126,7 @@ export default {
           );
         }
 
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           {
             video: { url: webpToMp42.result },
@@ -159,9 +159,9 @@ export default {
         }
         await doReact("🎶");
         let media = await quoted.download();
-        await Atlas.sendPresenceUpdate("recording", m.from);
+        await KAMI.sendPresenceUpdate("recording", m.from);
         let audio = await toAudio(media, "mp4");
-        Atlas.sendMessage(
+        KAMI.sendMessage(
           m.from,
           {
             document: audio,
@@ -194,9 +194,9 @@ export default {
         }
         await doReact("🎶");
         let media2 = await quoted.download();
-        await Atlas.sendPresenceUpdate("recording", m.from);
+        await KAMI.sendPresenceUpdate("recording", m.from);
         let audio2 = await toAudio(media2, "mp4");
-        Atlas.sendMessage(
+        KAMI.sendMessage(
           m.from,
           { audio: audio2, mimetype: "audio/mpeg" },
           { quoted: m },
@@ -214,7 +214,7 @@ export default {
         {
           let media5;
           try {
-            media5 = await Atlas.downloadAndSaveMediaMessage(quoted);
+            media5 = await KAMI.downloadAndSaveMediaMessage(quoted);
             let url = await CatboxUpload(media5);
             let mediaType = /image/.test(mime)
               ? "Image"
@@ -240,7 +240,7 @@ export default {
       case "imgtopdf":
         if (/image/.test(mime)) {
           await doReact("📑");
-          let mediaMess4 = await Atlas.downloadAndSaveMediaMessage(quoted);
+          let mediaMess4 = await KAMI.downloadAndSaveMediaMessage(quoted);
 
           async function generatePDF(path) {
             return new Promise((resolve, reject) => {
@@ -273,7 +273,7 @@ export default {
             setTimeout(async () => {
               const pdf = fs.readFileSync(pdfPATH);
 
-              Atlas.sendMessage(
+              KAMI.sendMessage(
                 m.from,
                 {
                   document: pdf,
@@ -309,7 +309,7 @@ export default {
         const res = await getBuffer(
           `https://www.qrtag.net/api/qr_8.png?url=${text}`,
         );
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           { image: res, caption: `\n*Source:* ${text}` },
           { quoted: m },
