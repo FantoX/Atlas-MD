@@ -17,7 +17,7 @@ export default {
   uniquecommands: ["install", "uninstall", "plugins", "pluginlist"],
   description: "Install, Uninstall, List plugins",
   start: async (
-    Atlas,
+    KAMI,
     m,
     {
       text,
@@ -33,9 +33,9 @@ export default {
     switch (inputCMD) {
       case "install": {
         const chechSenderModStatus = await checkMod(m.sender);
-        if (!chechSenderModStatus && !isCreator && !isintegrated()) {
+        if (!isCreator) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Bot Moderators* can use this command !`,
             quoted: m,
           });
@@ -44,7 +44,7 @@ export default {
         try {
           parsedUrl = new URL(text);
         } catch (e) {
-          return await Atlas.sendMessage(
+          return await KAMI.sendMessage(
             m.from,
             { text: `Invalid URL !` },
             { quoted: m },
@@ -94,7 +94,7 @@ export default {
         await doReact("🧩");
         const plugins = await getAllPlugins();
         if (!plugins.length) {
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { text: `No additional plugins installed !` },
             { quoted: m },
@@ -105,16 +105,16 @@ export default {
             txt += `🔖 *Plugin ${i + 1}*\n*🎀 Name:* ${plugins[i].plugin}\n*🧩 Url:* ${plugins[i].url}\n\n`;
           }
           txt += `⚜️ To uninstall a plugin type *uninstall* plugin-name or plugin-number !\n\nExample: *${prefix}uninstall* audioEdit.js\nor *${prefix}uninstall* 1`;
-          await Atlas.sendMessage(m.from, { text: txt }, { quoted: m });
+          await KAMI.sendMessage(m.from, { text: txt }, { quoted: m });
         }
         break;
       }
 
       case "uninstall": {
         const chechSenderModStatus = await checkMod(m.sender);
-        if (!chechSenderModStatus && !isCreator && !isintegrated()) {
+        if (!isCreator) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Bot Moderators* can use this command !`,
             quoted: m,
           });
@@ -196,7 +196,7 @@ export default {
 *🎀 Name:* nsfw-image.js\n🔖 *Number of commands:* 1\n*🧩 Url:* https://gist.githubusercontent.com/FantoX001/804c106f1f2fb1ae46e9bd63f854069d/raw/a93191b83c0cca44abb7e0e26b55caf2892f0bb4/nsfw-image.js\n\n
 
 ⚜️ To install a plugin type *install* _plugin-url_ !\n\nExample: *${prefix}install* https://gist.githubusercontent.com/FantoX001/xyz...\n\n⚜️ To uninstall a plugin type *uninstall* _plugin-name_ !\n\nExample: *${prefix}uninstall* audioEdit.js\n`;
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           { image: { url: botImage1 }, caption: textssf },
           { quoted: m },
