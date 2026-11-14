@@ -1,5 +1,5 @@
 {
-  "name": "Atlas-MD",
+  "name": "KAMI-MD",
   "description": "The future of WhatsApp bots now with plugin support.",
   "keywords": [
     "bot",
@@ -14,8 +14,8 @@
     "baileys-md",
     "md-bot"
   ],
-  "website": "https://github.com/FantoX/Atlas-MD#readme",
-  "repository": "https://github.com/FantoX/Atlas-MD.git",
+  "website": "https://github.com/kamran522/Atlas-MD#readme",
+  "repository": "https://github.com/kamran522/Atlas-MD.git",
   "logo": "https://graph.org/file/02abf0fd8fc2a13cc67a1.jpg",
   "success_url": "/",
   "env": {
@@ -35,11 +35,11 @@
       "required": false
     },
     "PACKNAME": {
-      "description": "Put a sticker packname here. Default is: Atlas Bot",
+      "description": "Put a sticker packname here. Default is: KAMI Bot",
       "required": false
     },
     "MONGODB": {
-      "description": "Put Your MongoDB URL. You can create MongoDB Atlas URL for free."
+      "description": "Put Your MongoDB URL. You can create MongoDB KAMI URL for free."
     },
     "OPENAI_API": {
       "description": "Put your OpenAI API key here if you want to use ChatGPT and DALL-E.",
