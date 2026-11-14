@@ -26,15 +26,15 @@ global.pickKey = (keys) => {
 
 let gg = process.env.MODS;
 if (!gg) {
-  gg = "918101187835"; // You can replace this number with yours //
+  gg = "923111008401,923395267262"; // You can replace this number with yours //
 }
 
 global.owner = gg.split(",");
-global.mongodb = process.env.MONGODB || "mongodb://localhost:27017/atlas";
-global.sessionId = stripEnv(process.env.SESSION_ID, "ok");
+global.mongodb = process.env.MONGODB || "mongodb://127.0.0.1:27017/kami";
+global.sessionId = stripEnv(process.env.SESSION_ID, "local");
 global.prefa = stripEnv(process.env.PREFIX, "-");
-global.packname = stripEnv(process.env.PACKNAME, `Atlas Bot`);
-global.author = stripEnv(process.env.AUTHOR, "by: Team Atlas");
+global.packname = stripEnv(process.env.PACKNAME, `KAMI-MD`);
+global.author = stripEnv(process.env.AUTHOR, "Kamran Hasil");
 global.port = stripEnv(process.env.PORT, "10000");
 
 // Multi-key pools — comma-separate as many keys as you want in .env
