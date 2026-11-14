@@ -17,7 +17,7 @@ export default {
   alias: [...mergedCommands],
   uniquecommands: ["image", "couplepp", "gif", "pin"],
   description: "All picture related commands",
-  start: async (Atlas, m, { inputCMD, text, doReact, prefix }) => {
+  start: async (KAMI, m, { inputCMD, text, doReact, prefix }) => {
     switch (inputCMD) {
       case "ppcouple":
       case "couplepp":
@@ -27,12 +27,12 @@ export default {
             "https://couple-pfp-api.vercel.app/api/v1/couplepfp",
             { timeout: 10000 }
           );
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { image: { url: imgRes.data.male }, caption: `_For Him..._` },
             { quoted: m },
           );
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { image: { url: imgRes.data.female }, caption: `_For Her..._` },
             { quoted: m },
@@ -82,7 +82,7 @@ export default {
           const pool = imgUrls.slice(0, 10);
           const imageUrl = pool[Math.floor(Math.random() * pool.length)];
           const resText = `\n_🎴 Image Search:_ *${text}*\n\n_🧩 Powered by_ *${botName}*\n`;
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { image: { url: imageUrl }, caption: resText },
             { quoted: m },
@@ -107,7 +107,7 @@ export default {
         );
         let resultGif = Math.floor(Math.random() * 12);
         let gifUrl = resGif.data.results[resultGif].media_formats.mp4.url;
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           {
             video: { url: gifUrl },
@@ -149,7 +149,7 @@ export default {
           const pool = pinUrls.slice(0, 10);
           const imgnyee = pool[Math.floor(Math.random() * pool.length)];
           const txt = `\n_📍 Pinterest Search:_ *${text}*\n\n_🧩 Powered by_ *${botName}*\n`;
-          await Atlas.sendMessage(m.from, { image: { url: imgnyee }, caption: txt }, { quoted: m });
+          await KAMI.sendMessage(m.from, { image: { url: imgnyee }, caption: txt }, { quoted: m });
         } catch (e) {
           await doReact("❌");
           m.reply(`Pinterest search failed: ${e.message}`);
