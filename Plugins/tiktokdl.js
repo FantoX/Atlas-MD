@@ -6,7 +6,7 @@ export default {
   uniquecommands: ["tiktok", "ttdl", "tt"],
   description: "TikTok Downloader + Search",
 
-  start: async (Atlas, m, { text, prefix, doReact }) => {
+  start: async (KAMI, m, { text, prefix, doReact }) => {
     try {
       const input = text || m.quoted?.text;
 
@@ -51,7 +51,7 @@ Example:
 🔁 *Shares:* ${formatNumber(data.share_count)}
 👤 *Uploader:* ${data.author?.nickname || data.author?.unique_id || "-"}`;
         if (data.images && data.images.length > 0) {
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { text: caption },
             { quoted: m }
@@ -61,7 +61,7 @@ Example:
             const imgRes = await fetch(img);
             const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
 
-            await Atlas.sendMessage(
+            await KAMI.sendMessage(
               m.from,
               { image: imgBuffer },
               { quoted: m }
@@ -79,7 +79,7 @@ Example:
 
           const videoBuffer = Buffer.from(await vidRes.arrayBuffer());
 
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               video: videoBuffer,
@@ -94,7 +94,7 @@ Example:
             const audioRes = await fetch(data.music_info.play);
             const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
 
-            await Atlas.sendMessage(
+            await KAMI.sendMessage(
               m.from,
               {
                 audio: audioBuffer,
@@ -140,7 +140,7 @@ Example:
 
         const videoBuffer = Buffer.from(await vidRes.arrayBuffer());
 
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           {
             video: videoBuffer,
