@@ -72,7 +72,7 @@ export default {
   ],
   description: "All Moderator/Owner Commands",
   start: async (
-    Atlas,
+    KAMI,
     m,
     {
       inputCMD,
@@ -136,7 +136,7 @@ export default {
         try {
           if (isTargetMod) {
             await doReact("✅");
-            return Atlas.sendMessage(
+            return KAMI.sendMessage(
               m.from,
               {
                 text: `@${userId.split("@")[0]} is already registered as a mod`,
@@ -147,7 +147,7 @@ export default {
           }
           await doReact("✅");
           await addMod(userId);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               text: `@${userId.split("@")[0]} is successfully registered to mods`,
@@ -183,7 +183,7 @@ export default {
         try {
           if (!isTargetMod) {
             await doReact("✅");
-            return Atlas.sendMessage(
+            return KAMI.sendMessage(
               m.from,
               {
                 text: `@${userId.split("@")[0]} is not registered as a mod !`,
@@ -193,7 +193,7 @@ export default {
             );
           }
           await delMod(userId);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               text: `@${userId.split("@")[0]} is successfully removed from mods`,
@@ -249,7 +249,7 @@ export default {
             textM += `\n\n📛 *Don't Spam them to avoid Blocking !*\n\n🎀 For any help, type *${prefix}support* and ask in group.\n\n*💫 Thanks for using ${botName}. 💫*\n`;
           }
 
-          Atlas.sendMessage(
+          KAMI.sendMessage(
             m.from,
             {
               video: { url: botVideo },
@@ -262,7 +262,7 @@ export default {
         } catch (err) {
           console.error("[ EXCEPTION ] modlist error:", err.message);
           await doReact("❌");
-          return Atlas.sendMessage(
+          return KAMI.sendMessage(
             m.from,
             { text: `An internal error occurred while fetching the mod list.` },
             { quoted: m },
@@ -275,7 +275,7 @@ export default {
       case "banuser": {
         if (!text && !m.quoted) {
           await doReact("❌");
-          return Atlas.sendMessage(
+          return KAMI.sendMessage(
             m.from,
             { text: `Please tag a user to *Ban*!` },
             { quoted: m },
@@ -285,7 +285,7 @@ export default {
         const chechSenderModStatus = await checkMod(m.sender);
         if (!chechSenderModStatus && !isCreator && !isintegrated()) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Owners* and *Mods* can use this command !`,
             quoted: m,
           });
@@ -305,7 +305,7 @@ export default {
         }
         if (chechBanStatus) {
           await doReact("✅");
-          return Atlas.sendMessage(
+          return KAMI.sendMessage(
             m.from,
             {
               text: `@${mentionedUser.split("@")[0]} is already *Banned* !`,
@@ -317,7 +317,7 @@ export default {
         try {
           await banUser(userId);
           await doReact("✅");
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               text: `@${mentionedUser.split("@")[0]} has been *Banned* Successfully by *${pushName}*`,
@@ -343,7 +343,7 @@ export default {
         const chechSenderModStatus = await checkMod(m.sender);
         if (!chechSenderModStatus && !isCreator && !isintegrated()) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Owners* and *Mods* can use this command !`,
             quoted: m,
           });
@@ -354,7 +354,7 @@ export default {
           try {
             await unbanUser(userId);
             await doReact("✅");
-            await Atlas.sendMessage(
+            await KAMI.sendMessage(
               m.from,
               {
                 text: `@${mentionedUser.split("@")[0]} has been *Un-Banned* Successfully by *${pushName}*`,
@@ -369,7 +369,7 @@ export default {
           }
         } else {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `@${mentionedUser.split("@")[0]} is not *Banned* !`,
             mentions: [mentionedUser],
             quoted: m,
@@ -388,7 +388,7 @@ export default {
           ]);
 
           if (!bannedUsers.length && !bannedGroups.length) {
-            return Atlas.sendMessage(
+            return KAMI.sendMessage(
               m.from,
               { text: `  🚫  *${botName} Ban List*  🚫\n\nNo banned users or groups.` },
               { quoted: m },
@@ -411,7 +411,7 @@ export default {
               const gid = bannedGroups[i].id;
               let gname = gid;
               try {
-                const meta = await Atlas.groupMetadata(gid);
+                const meta = await KAMI.groupMetadata(gid);
                 gname = meta.subject || gid;
               } catch {}
               banlistText += `  ${i + 1}. ${gname}\n`;
@@ -419,7 +419,7 @@ export default {
           }
 
           const mentions = bannedUsers.map((u) => u.id);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { text: banlistText, mentions },
             { quoted: m },
@@ -435,7 +435,7 @@ export default {
       case "setchar": {
         if (!text) {
           await doReact("❌");
-          return Atlas.sendMessage(
+          return KAMI.sendMessage(
             m.from,
             { text: `Please enter a character number between 0-19 to set !` },
             { quoted: m },
@@ -444,7 +444,7 @@ export default {
         const chechSenderModStatus = await checkMod(m.sender);
         if (!chechSenderModStatus && !isCreator && !isintegrated()) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Owners* and *Mods* can use this command !`,
             quoted: m,
           });
@@ -453,14 +453,14 @@ export default {
         const intinput = parseInt(text);
         if (isNaN(intinput) || intinput < 0 || intinput > 19) {
           await doReact("❌");
-          return Atlas.sendMessage(
+          return KAMI.sendMessage(
             m.from,
             { text: `Please enter a character number between 0-19 to set !` },
             { quoted: m },
           );
         }
         const botNames = [
-          "Atlas MD",
+          "KAMI MD",
           "Power",
           "Makima",
           "Denji",
@@ -507,7 +507,7 @@ export default {
         const checkChar = await getChar();
         if (checkChar === intinput) {
           await doReact("✅");
-          return Atlas.sendMessage(
+          return KAMI.sendMessage(
             m.from,
             {
               image: { url: botLogos[intinput] },
@@ -518,7 +518,7 @@ export default {
         }
         await doReact("✅");
         await setChar(intinput);
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           {
             image: { url: botLogos[intinput] },
@@ -533,7 +533,7 @@ export default {
       case "characters": {
         await doReact("📃");
         const botNames = [
-          "Atlas MD",
+          "KAMI MD",
           "Power",
           "Makima",
           "Denji",
@@ -559,7 +559,7 @@ export default {
           charListMenu += `  [ ${i} ] :  *${botNames[i]}*\n`;
         }
         charListMenu += `\n*Select a character ID and use* \`${prefix}setchar <ID>\` *to set it.*`;
-        return Atlas.sendMessage(m.from, { text: charListMenu }, { quoted: m });
+        return KAMI.sendMessage(m.from, { text: charListMenu }, { quoted: m });
       }
 
       case "dmchatbot":
@@ -573,7 +573,7 @@ export default {
         const chechSenderModStatus = await checkMod(m.sender);
         if (!chechSenderModStatus && !isCreator && !isintegrated()) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Owners* and *Mods* can use this command !`,
             quoted: m,
           });
@@ -583,7 +583,7 @@ export default {
         if (args[0] === "on") {
           if (pmChatBotStatus) {
             await doReact("❌");
-            return Atlas.sendMessage(m.from, {
+            return KAMI.sendMessage(m.from, {
               text: `Private Chatbot is already *Enabled* !`,
               quoted: m,
             });
@@ -595,7 +595,7 @@ export default {
         } else if (args[0] === "off") {
           if (!pmChatBotStatus) {
             await doReact("❌");
-            return Atlas.sendMessage(m.from, {
+            return KAMI.sendMessage(m.from, {
               text: `Private Chatbot is already *Disabled* !`,
               quoted: m,
             });
@@ -620,7 +620,7 @@ export default {
         const chechSenderModStatus = await checkMod(m.sender);
         if (!chechSenderModStatus && !isCreator && !isintegrated()) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Owners* and *Mods* can use this command !`,
             quoted: m,
           });
@@ -628,7 +628,7 @@ export default {
         const groupBanStatus = await checkBanGroup(m.from);
         if (groupBanStatus) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `This group is already *Banned* !`,
             quoted: m,
           });
@@ -648,7 +648,7 @@ export default {
         const chechSenderModStatus = await checkMod(m.sender);
         if (!chechSenderModStatus && !isCreator && !isintegrated()) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Owners* and *Mods* can use this command !`,
             quoted: m,
           });
@@ -656,7 +656,7 @@ export default {
         const groupBanStatus = await checkBanGroup(m.from);
         if (!groupBanStatus) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `This group is not banned !`,
             quoted: m,
           });
@@ -678,7 +678,7 @@ export default {
         const chechSenderModStatus = await checkMod(m.sender);
         if (!chechSenderModStatus && !isCreator && !isintegrated()) {
           await doReact("❌");
-          return Atlas.sendMessage(m.from, {
+          return KAMI.sendMessage(m.from, {
             text: `Sorry, only *Owners* and *Mods* can use this command !`,
             quoted: m,
           });
@@ -755,7 +755,7 @@ export default {
           const filePath = path.join(pluginDir, foundFile);
 
           await doReact("🧩");
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               document: fs.readFileSync(filePath),
