@@ -31,7 +31,7 @@ export default {
   ],
   description: "All Sticker formatting Commands",
   start: async (
-    Atlas,
+    KAMI,
     m,
     {
       inputCMD,
@@ -69,13 +69,13 @@ export default {
             background: "transparent",
           });
           const stickerBuffer = await stickerMess.toBuffer();
-          Atlas.sendMessage(m.from, { sticker: stickerBuffer }, { quoted: m });
+          KAMI.sendMessage(m.from, { sticker: stickerBuffer }, { quoted: m });
         } else if (/video/.test(mime)) {
           await doReact("🔖");
           let mediaMess = await quoted.download();
           if ((quoted.msg || quoted).seconds > 15) {
             await doReact("❌");
-            return Atlas.sendMessage(
+            return KAMI.sendMessage(
               m.from,
               { text: "Please send video less than 15 seconds." },
               { quoted: m }
@@ -91,7 +91,7 @@ export default {
             background: "transparent",
           });
           const stickerBuffer2 = await stickerMess.toBuffer();
-          Atlas.sendMessage(m.from, { sticker: stickerBuffer2 }, { quoted: m });
+          KAMI.sendMessage(m.from, { sticker: stickerBuffer2 }, { quoted: m });
         } else {
           await doReact("❌");
           m.reply(
@@ -130,7 +130,7 @@ export default {
             background: "transparent",
           });
           const stickerBuffer = await stickerMess.toBuffer();
-          Atlas.sendMessage(m.from, { sticker: stickerBuffer }, { quoted: m });
+          KAMI.sendMessage(m.from, { sticker: stickerBuffer }, { quoted: m });
         } else {
           await doReact("❌");
           m.reply(
@@ -155,7 +155,7 @@ export default {
             background: "transparent",
           });
           const stickerBuffer = await stickerMess.toBuffer();
-          Atlas.sendMessage(m.from, { sticker: stickerBuffer }, { quoted: m });
+          KAMI.sendMessage(m.from, { sticker: stickerBuffer }, { quoted: m });
         } else if (/video/.test(mime)) {
           await doReact("🃏");
           let mediaMess = await quoted.download();
@@ -173,7 +173,7 @@ export default {
             background: "transparent",
           });
           const stickerBuffer2 = await stickerMess.toBuffer();
-          Atlas.sendMessage(m.from, { sticker: stickerBuffer2 }, { quoted: m });
+          KAMI.sendMessage(m.from, { sticker: stickerBuffer2 }, { quoted: m });
         } else {
           await doReact("❌");
           m.reply(
@@ -192,7 +192,7 @@ export default {
             );
           }
           await doReact("📮");
-          const media = await Atlas.downloadAndSaveMediaMessage(quoted);
+          const media = await KAMI.downloadAndSaveMediaMessage(quoted);
           const mem = await TelegraPh(media);
           const meme = `https://api.memegen.link/images/custom/-/${text}.png?background=${mem}`;
 
@@ -207,7 +207,7 @@ export default {
           });
 
           const stickerBuffer2 = await stickerMess.toBuffer();
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { sticker: stickerBuffer2 },
             { quoted: m }
@@ -226,20 +226,20 @@ export default {
         if (!text && !m.quoted) {
           await doReact("❔");
           return m.reply(
-            `Please provide a text (Type or mention a message) !\n\nExample: ${prefix}q Atlas MD is OP`
+            `Please provide a text (Type or mention a message) !\n\nExample: ${prefix}q KAMI MD is OP`
           );
         }
 
         let userPfp;
         if (m.quoted) {
           try {
-            userPfp = await Atlas.profilePictureUrl(m.quoted.sender, "image");
+            userPfp = await KAMI.profilePictureUrl(m.quoted.sender, "image");
           } catch (e) {
             userPfp = botImage3;
           }
         } else {
           try {
-            userPfp = await Atlas.profilePictureUrl(m.sender, "image");
+            userPfp = await KAMI.profilePictureUrl(m.sender, "image");
           } catch (e) {
             userPfp = botImage3;
           }
@@ -298,7 +298,7 @@ export default {
         });
 
         const stickerBuffer2 = await stickerMess.toBuffer();
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           { sticker: stickerBuffer2 },
           { quoted: m }
@@ -346,7 +346,7 @@ export default {
         });
 
         const stickerBuffer = await stickerMess2.toBuffer();
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           { sticker: stickerBuffer },
           { quoted: m }

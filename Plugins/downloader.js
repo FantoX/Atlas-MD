@@ -185,7 +185,7 @@ export default {
   alias: [...mergedCommands],
   uniquecommands: ["download"],
   description: "Multi-platform media downloader",
-  start: async (Atlas, m, { args, prefix, command, doReact }) => {
+  start: async (KAMI, m, { args, prefix, command, doReact }) => {
     let raw = args.join(" ").trim();
     if (!raw && m.quoted?.text) raw = m.quoted.text;
 
@@ -215,7 +215,7 @@ MediaFire
         case "tt": {
           const r = await tt(url.url);
           if (r.type === "video") {
-            await Atlas.sendMessage(
+            await KAMI.sendMessage(
               m.from,
               { video: { url: r.data }, mimetype: "video/mp4" },
               { quoted: m },
@@ -224,14 +224,14 @@ MediaFire
             if (!r.data || r.data.length === 0)
               throw new Error("No image data found");
             if (r.data.length === 1) {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { image: { url: r.data[0] } },
                 { quoted: m },
               );
             } else {
               for (let img of r.data) {
-                await Atlas.sendMessage(
+                await KAMI.sendMessage(
                   m.from,
                   { image: { url: img } },
                   { quoted: m },
@@ -247,13 +247,13 @@ MediaFire
           if (!urls || urls.length === 0) throw new Error("No media found");
           for (let link of urls) {
             if (isVideo) {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { video: { url: link }, mimetype: "video/mp4" },
                 { quoted: m },
               );
             } else {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { image: { url: link } },
                 { quoted: m },
@@ -269,7 +269,7 @@ MediaFire
           const imgs = meds.filter((m) => m.type === "image");
           if (imgs.length > 0) {
             for (let img of imgs) {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { image: { url: img.url } },
                 { quoted: m },
@@ -279,13 +279,13 @@ MediaFire
             const vid = meds.find((m) => m.type === "video");
             const gif = meds.find((m) => m.type === "gif");
             if (vid) {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { video: { url: vid.url }, mimetype: "video/mp4" },
                 { quoted: m },
               );
             } else if (gif) {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { video: { url: gif.url }, gifPlayback: true },
                 { quoted: m },
@@ -299,13 +299,13 @@ MediaFire
           const med = await fb(url.url);
           if (med.video_hd || med.video_sd) {
             const vu = med.video_hd || med.video_sd;
-            await Atlas.sendMessage(
+            await KAMI.sendMessage(
               m.from,
               { video: { url: vu }, mimetype: "video/mp4" },
               { quoted: m },
             );
           } else if (med.photo_image) {
-            await Atlas.sendMessage(
+            await KAMI.sendMessage(
               m.from,
               { image: { url: med.photo_image } },
               { quoted: m },
@@ -324,7 +324,7 @@ MediaFire
             if (!r.data || r.data.length === 0)
               throw new Error("No image data found");
             for (let img of r.data) {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { image: { url: img.url } },
                 { quoted: m },
@@ -340,7 +340,7 @@ MediaFire
               vqs.find((v) => v.resolusi === "426p") ||
               vqs[0];
             if (best) {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { video: { url: best.url }, mimetype: "video/mp4" },
                 { quoted: m },
@@ -354,7 +354,7 @@ MediaFire
 
         case "vd": {
           const vu = await vd(url.url);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { video: { url: vu }, mimetype: "video/mp4" },
             { quoted: m },
@@ -364,7 +364,7 @@ MediaFire
 
         case "mf": {
           const r = await mf(url.url);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               document: { url: r.download_url },
@@ -385,14 +385,14 @@ MediaFire
           const vids = meds.filter((m) => m.thumbnail && m.thumbnail !== "-");
           const imgs = meds.filter((m) => !m.thumbnail || m.thumbnail === "-");
           if (vids.length > 0) {
-            await Atlas.sendMessage(
+            await KAMI.sendMessage(
               m.from,
               { video: { url: vids[0].url }, mimetype: "video/mp4" },
               { quoted: m },
             );
           } else if (imgs.length > 0) {
             for (let img of imgs) {
-              await Atlas.sendMessage(
+              await KAMI.sendMessage(
                 m.from,
                 { image: { url: img.url } },
                 { quoted: m },
@@ -407,7 +407,7 @@ MediaFire
           const durl = Array.isArray(r.download_url)
             ? r.download_url[0]
             : r.download_url;
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               document: { url: durl },
@@ -422,7 +422,7 @@ MediaFire
 
         case "sc": {
           const r = await sc(url.url);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               audio: { url: r.url },
@@ -436,7 +436,7 @@ MediaFire
 
         case "sp": {
           const r = await sp(url.url);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               audio: { url: r.url },
@@ -450,7 +450,7 @@ MediaFire
 
         case "yt": {
           const r = await yt(url.url);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               audio: { url: r.url },
@@ -464,7 +464,7 @@ MediaFire
 
         case "sf": {
           const r = await sf(url.url);
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             {
               document: { url: r.url },

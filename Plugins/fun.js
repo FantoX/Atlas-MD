@@ -8,7 +8,7 @@ export default {
   uniquecommands: ["truth", "dare", "coinflip", "dice", "fact"],
   description: "All fun Commands",
   start: async (
-    Atlas,
+    KAMI,
     m,
     { text, args, prefix, inputCMD, mentionedJid, mentionByTag, doReact },
   ) => {
@@ -123,7 +123,7 @@ export default {
         ];
         const truthData = truth[Math.floor(Math.random() * truth.length)];
 
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           { image: { url: botImage3 }, caption: `*${truthData}*` },
           { quoted: m },
@@ -238,7 +238,7 @@ export default {
 
         const dareData = dare[Math.floor(Math.random() * dare.length)];
 
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           { image: { url: botImage3 }, caption: `*${dareData}*` },
           { quoted: m },
@@ -249,9 +249,9 @@ export default {
         await doReact("🧫️");
         let result = Math.floor(Math.random() * 2) + 1;
         if (result === 1) {
-          await Atlas.sendMessage(m.from, { text: "Heads" }, { quoted: m });
+          await KAMI.sendMessage(m.from, { text: "Heads" }, { quoted: m });
         } else {
-          await Atlas.sendMessage(m.from, { text: "Tails" }, { quoted: m });
+          await KAMI.sendMessage(m.from, { text: "Tails" }, { quoted: m });
         }
         break;
 
@@ -259,13 +259,13 @@ export default {
         await doReact("🎲️");
         let max = parseInt(args[0]);
         if (!max)
-          return Atlas.sendMessage(
+          return KAMI.sendMessage(
             m.from,
             { text: "Please provide a maximum number of sides for the dice." },
             { quoted: m },
           );
         let roll = Math.floor(Math.random() * max) + 1;
-        Atlas.sendMessage(
+        KAMI.sendMessage(
           m.from,
           { text: `You rolled a ${roll}!` },
           { quoted: m },
@@ -277,7 +277,7 @@ export default {
         try {
           const response = await axios.get(`https://nekos.life/api/v2/fact`);
           const tet = `*『  Random Facts  』* \n\n${response.data.fact}`;
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { image: { url: botImage4 }, caption: tet + "\n" },
             { quoted: m },

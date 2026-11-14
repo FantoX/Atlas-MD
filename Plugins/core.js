@@ -28,7 +28,7 @@ export default {
   uniquecommands: ["script", "support", "help", "alive", "restart"],
   description: "All system commands",
   start: async (
-    Atlas,
+    KAMI,
     m,
     {
       pushName,
@@ -41,7 +41,7 @@ export default {
       isintegrated,
     },
   ) => {
-    const pic = fs.readFileSync("./Assets/Atlas.jpg");
+    const pic = fs.readFileSync("./Assets/KAMI.jpg");
     switch (inputCMD) {
       case "alive":
       case "ping":
@@ -146,7 +146,7 @@ export default {
           ].filter(Boolean);
 
           const parts = [
-            `⚡ *Atlas — System Status*`,
+            `⚡ *KAMI — System Status*`,
             ``,
             `👤 *User :* ${pushName}`,
             `🤖 *Bot Status :* Online ✅`,
@@ -162,7 +162,7 @@ export default {
               : []),
           ];
 
-          await Atlas.sendMessage(
+          await KAMI.sendMessage(
             m.from,
             { image: pic, caption: parts.join("\n") },
             { quoted: m },
@@ -178,7 +178,7 @@ export default {
       case "sc":
         await doReact("🧣");
         let repoInfo = await axios.get(
-          "https://api.github.com/repos/FantoX/Atlas-MD",
+          "https://api.github.com/repos/kamran522/Atlas-MD",
         );
         let repo = repoInfo.data;
         let txt = `            🧣 *${botName}'s Script* 🧣\n\n*🎀 Total Forks:* ${
@@ -189,22 +189,22 @@ export default {
           2,
         )} MB\n*📅 Last Updated:* ${repo.updated_at}\n\n*🔗 Repo Link:* ${
           repo.html_url
-        }\n\n❝ Dont forget to give a Star ⭐ to the repo. It's made with restless hardwork by *Team ATLAS*. ❞\n\n*©️ Team ATLAS- ${new Date().getFullYear()}*`;
-        Atlas.sendMessage(m.from, { image: pic, caption: txt }, { quoted: m });
+        }\n\n❝ Dont forget to give a Star ⭐ to the repo. It's made with restless hardwork by *Kamran Hasil*. ❞\n\n*©️ Kamran Hasil- ${new Date().getFullYear()}*`;
+        KAMI.sendMessage(m.from, { image: pic, caption: txt }, { quoted: m });
         break;
 
       case "support":
       case "supportgc":
         await doReact("🔰");
-        let txt2 = `              🧣 *Support Group* 🧣\n\n*${botName}* is an open source project, and we are always happy to help you.\n\n*Link:* ${suppL}\n\n*Note:* Please don't spam in the group, and don't message *Admins directly* without permission. Ask for help inside *Group*.\n\n*Thanks for using Atlas.*`;
-        Atlas.sendMessage(m.from, { image: pic, caption: txt2 }, { quoted: m });
+        let txt2 = `              🧣 *Support Group* 🧣\n\n*${botName}* is an open source project, and we are always happy to help you.\n\n*Link:* ${suppL}\n\n*Note:* Please don't spam in the group, and don't message *Admins directly* without permission. Ask for help inside *Group*.\n\n*Thanks for using KAMI.*`;
+        KAMI.sendMessage(m.from, { image: pic, caption: txt2 }, { quoted: m });
         break;
 
       case "help":
       case "h":
       case "menu":
         await doReact("☃️");
-        await Atlas.sendPresenceUpdate("composing", m.from);
+        await KAMI.sendPresenceUpdate("composing", m.from);
         async function readUniqueCommands(dirPath) {
           const allCommands = [];
 
@@ -307,7 +307,7 @@ export default {
         var helpText = [
           `ᴋᴏɴɴɪᴄʜɪᴡᴀ *${pushName}* ꜱᴇɴᴘᴀɪ 👋`,
           `ɪ ᴀᴍ *${botName}*, ᴀ ᴡʜᴀᴛꜱᴀᴘᴘ ʙᴏᴛ`,
-          `ᴅᴇᴠᴇʟᴏᴘᴇᴅ ʙʏ *ᴛᴇᴀᴍ ᴀᴛʟᴀꜱ* 🌸`,
+          `ᴅᴇᴠᴇʟᴏᴘᴇᴅ ʙʏ *Kamran Hasil* 🌸`,
           ``,
           `🎀 *ᴘʀᴇꜰɪx* : \`${prefix}\``,
           `📦 *ᴄᴏᴍᴍᴀɴᴅꜱ* : *${totalCmds}* ᴀᴠᴀɪʟᴀʙʟᴇ`,
@@ -317,10 +317,10 @@ export default {
           ``,
           `*ꜱᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ:* \`${prefix}support\``,
           ``,
-          `ᴘᴏᴡᴇʀᴇᴅ ʙʏ: © *ᴛᴇᴀᴍ ᴀᴛʟᴀꜱ*`,
+          `ᴘᴏᴡᴇʀᴇᴅ ʙʏ: © *Kamran Hasil*`,
         ].join("\n");
 
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           { video: { url: botVideo }, gifPlayback: true, caption: helpText },
           { quoted: m },
@@ -332,14 +332,14 @@ export default {
       case "restart": {
         if (!isCreator && !isintegrated) {
           await doReact("❌");
-          return Atlas.sendMessage(
+          return KAMI.sendMessage(
             m.from,
             { text: `Only *Owners* can restart the bot !` },
             { quoted: m },
           );
         }
         await doReact("🔄");
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           {
             text: `♻️ *Restarting bot...*\n\nBot will be back online shortly !`,
@@ -355,7 +355,7 @@ export default {
             process.exit(0);
           } else {
             const { spawn } = await import("child_process");
-            const logPath = path.join(process.cwd(), "atlas.log");
+            const logPath = path.join(process.cwd(), "kami.log");
             const logFd = fs.openSync(logPath, "a");
             const child = spawn(
               process.execPath,

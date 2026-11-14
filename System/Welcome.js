@@ -1,8 +1,8 @@
 import { checkWelcome } from "./MongoDB/MongoDb_Core.js";
 
-export default async (Atlas, anu) => {
+export default async (KAMI, anu) => {
   try {
-    const metadata = await Atlas.groupMetadata(anu.id);
+    const metadata = await KAMI.groupMetadata(anu.id);
     const participants = anu.participants;
     let desc = metadata.desc;
     if (desc == undefined) desc = "No Description";
@@ -12,7 +12,7 @@ export default async (Atlas, anu) => {
       const num = typeof numEntry === "string" ? numEntry : numEntry.id;
       let ppuser;
       try {
-        ppuser = await Atlas.profilePictureUrl(num, "image");
+        ppuser = await KAMI.profilePictureUrl(num, "image");
       } catch {
         ppuser = "https://i.imgur.com/MClOeqe.jpeg";
       }
@@ -21,7 +21,7 @@ export default async (Atlas, anu) => {
         const WELstatus = await checkWelcome(anu.id);
         const WAuserName = num;
 
-        const Atlastext = `
+        const KAMItext = `
 Hello @${WAuserName.split("@")[0]} Senpai,
 
 Welcome to *${metadata.subject}*.
@@ -33,9 +33,9 @@ ${desc}
 *Thank You.*
   `;
         if (WELstatus) {
-          await Atlas.sendMessage(anu.id, {
+          await KAMI.sendMessage(anu.id, {
             image: { url: ppuser },
-            caption: Atlastext,
+            caption: KAMItext,
             mentions: [num],
           });
         }
@@ -43,13 +43,13 @@ ${desc}
         const WELstatus = await checkWelcome(anu.id);
         const WAuserName = num;
 
-        const Atlastext = `
+        const KAMItext = `
   @${WAuserName.split("@")[0]} Senpai left the group.
   `;
         if (WELstatus) {
-          await Atlas.sendMessage(anu.id, {
+          await KAMI.sendMessage(anu.id, {
             image: { url: ppuser },
-            caption: Atlastext,
+            caption: KAMItext,
             mentions: [num],
           });
         }

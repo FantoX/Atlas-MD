@@ -1,5 +1,5 @@
 {
-  "name": "atlas",
+  "name": "kami",
   "version": "4.1.0",
   "description": "The future of WhatsApp bots with plugin support.",
   "type": "module",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FantoX/Atlas-MD.git"
+    "url": "git+https://github.com/kamran522/Atlas-MD.git"
   },
   "keywords": [
     "bot",
@@ -23,9 +23,9 @@
   "author": "FantoX",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/FantoX/Atlas-MD/issues"
+    "url": "https://github.com/kamran522/Atlas-MD/issues"
   },
-  "homepage": "https://github.com/FantoX/Atlas-MD#readme",
+  "homepage": "https://github.com/kamran522/Atlas-MD#readme",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
     "@fantox01/lyrics-scraper": "latest",

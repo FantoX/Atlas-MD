@@ -1,42 +1,42 @@
 <p align="center">
-  <a href="https://github.com/FantoX/Atlas-MD">
+  <a href="https://github.com/kamran522/Atlas-MD">
     <img src="https://i.imgur.com/MClOeqe.jpeg" width="100%">
   </a>
 </p>
 
-<h1 align="center">⚡ Atlas MD</h1>
+<h1 align="center">⚡ KAMI MD</h1>
 
 <p align="center">
-  <i>An Opensource WhatsApp bot by <a href="https://github.com/FantoX">FantoX</a> & Team Atlas — built with Baileys Multi-Device for maximum features, stability and compatibility.</i>
+  <i>An Opensource WhatsApp bot by <a href="https://github.com/kamran522">FantoX</a> & Kamran Hasil — built with Baileys Multi-Device for maximum features, stability and compatibility.</i>
 </p>
 
 <p align="center">
-  <a href="https://github.com/FantoX/Atlas-MD/fork">
-    <img src="https://img.shields.io/github/forks/FantoX/Atlas-MD?label=Fork&style=social">
+  <a href="https://github.com/kamran522/Atlas-MD/fork">
+    <img src="https://img.shields.io/github/forks/FantoX/KAMI-MD?label=Fork&style=social">
   </a>
   &nbsp;
-  <a href="https://github.com/FantoX/Atlas-MD/stargazers">
-    <img src="https://img.shields.io/github/stars/FantoX/Atlas-MD?style=social">
+  <a href="https://github.com/kamran522/Atlas-MD/stargazers">
+    <img src="https://img.shields.io/github/stars/FantoX/KAMI-MD?style=social">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/FantoX/Atlas-MD/actions/workflows/ci.yml">
-    <img src="https://github.com/FantoX/Atlas-MD/actions/workflows/ci.yml/badge.svg" alt="CI Build Status">
+  <a href="https://github.com/kamran522/Atlas-MD/actions/workflows/ci.yml">
+    <img src="https://github.com/kamran522/Atlas-MD/actions/workflows/ci.yml/badge.svg" alt="CI Build Status">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/FantoX">
-    <img src="https://img.shields.io/badge/Owner-Team Atlas-white.svg?style=for-the-badge&logo=github" width="170px">
+  <a href="https://github.com/kamran522">
+    <img src="https://img.shields.io/badge/Owner-Kamran Hasil-white.svg?style=for-the-badge&logo=github" width="170px">
   </a>
-  <a href="https://github.com/FantoX/Atlas-MD/blob/main/LICENSE.md">
-    <img src="https://img.shields.io/github/license/FantoX/Atlas-MD?color=%231e81b0&style=for-the-badge" width="114px">
+  <a href="https://github.com/kamran522/Atlas-MD/blob/main/LICENSE.md">
+    <img src="https://img.shields.io/github/license/FantoX/KAMI-MD?color=%231e81b0&style=for-the-badge" width="114px">
   </a>
-  <a href="https://github.com/FantoX">
+  <a href="https://github.com/kamran522">
     <img src="https://img.shields.io/badge/Open%20Source-YES-green.svg?style=for-the-badge" width="150px">
   </a>
-  <a href="https://github.com/FantoX">
+  <a href="https://github.com/kamran522">
     <img src="https://img.shields.io/badge/Maintained-YES-green.svg?style=for-the-badge" width="143px">
   </a>
 </p>
@@ -57,7 +57,7 @@
 | 💬 **Chatbot**              | Group chatbot (replies to @mentions) + DM chatbot (toggleable)                                                                      |
 | 📥 **Universal Downloader** | TikTok · Instagram · Pinterest · Facebook · Twitter/X · Threads · Videy · Mega · SoundCloud · Spotify · YouTube · Sfile · MediaFire |
 | 🎭 **26 Anime Reactions**   | bite, bonk, hug, kiss, slap, pat, cry... all as animated GIFs                                                                       |
-| 🎨 **20 Bot Characters**    | Switch personality: Atlas, Power, Makima, Zero Two, Miku, Rem & 14 more                                                             |
+| 🎨 **20 Bot Characters**    | Switch personality: KAMI, Power, Makima, Zero Two, Miku, Rem & 14 more                                                             |
 | 🛡️ **Full Moderation**      | Silent ban (user & group), role hierarchy, bot mode (Self/Private/Public)                                                           |
 | 👥 **Group Management**     | Promote, demote, tagall, antilink, welcome/goodbye, info, link & more                                                               |
 | 🔖 **Sticker Toolkit**      | Make stickers from image/video, meme stickers, quote stickers, emoji mixer                                                          |
@@ -76,10 +76,10 @@
 
 | Platform    | Deploy                                                                                                                                                                                                                                                                                                                                                                                       | Tutorial                                |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| **Repl.it** | <a href="https://repl.it/github/FantoX/Atlas-MD"><img src="https://i.ibb.co/zrB5kMh/deploy-on-repl.jpg" alt="Deploy on Repl.it" height="32"></a>                                                                                                                                                                                                                                             | [▶ Watch](https://youtu.be/R-_DU73UH8Q) |
+| **Repl.it** | <a href="https://repl.it/github/FantoX/KAMI-MD"><img src="https://i.ibb.co/zrB5kMh/deploy-on-repl.jpg" alt="Deploy on Repl.it" height="32"></a>                                                                                                                                                                                                                                             | [▶ Watch](https://youtu.be/R-_DU73UH8Q) |
 | **Railway** | <a href="https://railway.app/new/template/Gts2Zx?referralCode=f3gg2m"><img src="https://railway.app/button.svg" alt="Deploy on Railway" height="32"></a>                                                                                                                                                                                                                                     | [▶ Watch](https://youtu.be/Qs6ryWnEtu8) |
-| **Koyeb**   | <a href="https://app.koyeb.com/apps/deploy?type=docker&image=quay.io/FantoX/Atlas-MD:main&env[PORT]=8000&env[PREFIX]=-&&env[MONGODB]=mongodb+srv://...&&env[SESSION_ID]=yourSession&&env[MODS]=918101187835&&env[TENOR_API_KEY]=AIzaSyCyouca1_KKy4W_MG1xsPzuku5oa8W358c&&name=atlas"><img src="https://www.koyeb.com/static/images/deploy/button.svg" alt="Deploy on Koyeb" height="32"></a> | [▶ Watch](https://youtu.be/OvNnpK1Gx6Y) |
-| **Heroku**  | <a href="https://heroku.com/deploy?template=https://github.com/FantoX/Atlas-MD"><img src="https://www.herokucdn.com/deploy/button.png" alt="Deploy on Heroku" height="32"></a>                                                                                                                                                                                                               | —                                       |
+| **Koyeb**   | <a href="https://app.koyeb.com/apps/deploy?type=docker&image=quay.io/FantoX/KAMI-MD:main&env[PORT]=8000&env[PREFIX]=-&&env[MONGODB]=mongodb+srv://...&&env[SESSION_ID]=yourSession&&env[MODS]=918101187835&&env[TENOR_API_KEY]=AIzaSyCyouca1_KKy4W_MG1xsPzuku5oa8W358c&&name=kami"><img src="https://www.koyeb.com/static/images/deploy/button.svg" alt="Deploy on Koyeb" height="32"></a> | [▶ Watch](https://youtu.be/OvNnpK1Gx6Y) |
+| **Heroku**  | <a href="https://heroku.com/deploy?template=https://github.com/kamran522/Atlas-MD"><img src="https://www.herokucdn.com/deploy/button.png" alt="Deploy on Heroku" height="32"></a>                                                                                                                                                                                                               | —                                       |
 
 </p>
 
@@ -100,8 +100,8 @@
 | `GEMINI_API`          | Google Gemini API key(s), comma-separated                                                     | Optional    |
 | `OPENAI_API`          | OpenAI API key(s) starting with `sk-`, comma-separated                                        | Optional    |
 | `CLAUDE_API`          | Anthropic Claude API key(s), comma-separated                                                  | Optional    |
-| `PACKNAME`            | Sticker pack name (default: `Atlas Bot`)                                                      | Optional    |
-| `AUTHOR`              | Sticker author name (default: `by: Team Atlas`)                                               | Optional    |
+| `PACKNAME`            | Sticker pack name (default: `KAMI Bot`)                                                      | Optional    |
+| `AUTHOR`              | Sticker author name (default: `by: Kamran Hasil`)                                               | Optional    |
 | `PORT`                | Server port (default: `10000`)                                                                | Optional    |
 | `GC_INTERVAL_MINUTES` | MongoDB garbage collection interval in minutes (default: `5`)                                 | Optional    |
 | `WATCHDOG_INTERVAL_SECONDS` | WhatsApp server health-probe interval in seconds (default: `60`)                         | Optional    |
@@ -118,8 +118,8 @@
 
 ```bash
 # 1. Clone and enter the directory
-git clone https://github.com/FantoX/Atlas-MD
-cd Atlas-MD
+git clone https://github.com/kamran522/Atlas-MD
+cd KAMI-MD
 
 # 2. Install dependencies
 npm install
@@ -145,8 +145,8 @@ Scan the QR that appears in your browser via **WhatsApp → Linked Devices → L
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y bash git nodejs npm ffmpeg libwebp-dev imagemagick wget curl
 
-git clone https://github.com/FantoX/Atlas-MD
-cd Atlas-MD
+git clone https://github.com/kamran522/Atlas-MD
+cd KAMI-MD
 npm install
 npm install -g pm2
 
@@ -156,13 +156,13 @@ cp .env.example .env
 pm2 start ecosystem.config.cjs
 ```
 
-**Stop bot:** `pm2 kill` &nbsp;|&nbsp; **Restart:** `pm2 restart Atlas` &nbsp;|&nbsp; **Update session:** edit `SESSION_ID` in `.env`, then `git pull && pm2 restart Atlas`
+**Stop bot:** `pm2 kill` &nbsp;|&nbsp; **Restart:** `pm2 restart KAMI` &nbsp;|&nbsp; **Update session:** edit `SESSION_ID` in `.env`, then `git pull && pm2 restart KAMI`
 
 ---
 
 ## ✨ Feature Highlights
 
-**Atlas MD** comes packed with a robust set of features to power your groups and DMs. Instead of a massive list of commands, here are the top capabilities you get out-of-the-box:
+**KAMI MD** comes packed with a robust set of features to power your groups and DMs. Instead of a massive list of commands, here are the top capabilities you get out-of-the-box:
 
 - 🤖 **Advanced AI Integrations**: Seamlessly chat with Gemini, ChatGPT, and Claude. Built-in multi-key pools ensure you don't hit rate limits, and the AI can remember context for conversational interactions.
 - 🛠️ **Group Moderation & Management**: Take full control of your groups. Features include silent bans (users are ignored by the bot), anti-link protection, customizable welcome/goodbye messages, tagging all members, and managing admin roles fluidly.
@@ -182,7 +182,7 @@ Switch the bot's personality and profile picture with `-setchar <ID>`. Use `-cha
 
 | ID  | Character     | Series                 | ID  | Character    | Series            |
 | --- | ------------- | ---------------------- | --- | ------------ | ----------------- |
-| 0   | **Atlas MD**  | Default                | 10  | **Mizuhara** | Rent-A-Girlfriend |
+| 0   | **KAMI MD**  | Default                | 10  | **Mizuhara** | Rent-A-Girlfriend |
 | 1   | **Power**     | Chainsaw Man           | 11  | **Rem**      | Re:Zero           |
 | 2   | **Makima**    | Chainsaw Man           | 12  | **Sumi**     | Rent-A-Girlfriend |
 | 3   | **Denji**     | Chainsaw Man           | 13  | **Kaguya**   | Kaguya-sama       |
@@ -230,7 +230,7 @@ Install any plugin with: `-install <url>`
 
 ---
 
-## 〽️ Why Atlas?
+## 〽️ Why KAMI?
 
 - **100% Open Source** — MIT license, fork and modify freely.
 - **300+ Commands** across all plugins, plus a live plugin store for extending without restart.
@@ -245,7 +245,7 @@ Install any plugin with: `-install <url>`
 
 ## 🧣 Contributors
 
-Check the full [Contributors list](https://github.com/FantoX/Atlas-MD/graphs/contributors).  
+Check the full [Contributors list](https://github.com/kamran522/Atlas-MD/graphs/contributors).  
 PRs are welcome! Personal re-branding / bot-name-change PRs will **not** be merged.
 
 ---
@@ -254,7 +254,7 @@ PRs are welcome! Personal re-branding / bot-name-change PRs will **not** be merg
 
 - This bot is **not made by WhatsApp Inc.** — overuse may result in account ban.
 - Support is provided **only for deployment/setup**, not for custom development.
-- Made for **Educational / Fun / Group Management** purposes only. Team Atlas is not responsible for misuse.
+- Made for **Educational / Fun / Group Management** purposes only. Kamran Hasil is not responsible for misuse.
 
 ---
 
@@ -266,13 +266,13 @@ PRs are welcome! Personal re-branding / bot-name-change PRs will **not** be merg
 
 ---
 
-<h2 align="center">🔰 Meet Team Atlas 🔰</h2>
+<h2 align="center">🔰 Meet Kamran Hasil 🔰</h2>
 
 <h3 align="center">Current Moderators</h3>
 
-| [![Fantox](https://github.com/FantoX.png)](https://github.com/FantoX) | [![AYUSH](https://github.com/AYUSH-PANDEY023.png)](https://github.com/AYUSH-PANDEY023) | [![RA-ONE](https://github.com/7thRA-ONE.png)](https://github.com/7thRA-ONE) | [![Sten-X](https://github.com/Sten-X.png)](https://github.com/Sten-X) |
+| [![Fantox](https://github.com/kamran522.png)](https://github.com/kamran522) | [![AYUSH](https://github.com/AYUSH-PANDEY023.png)](https://github.com/AYUSH-PANDEY023) | [![RA-ONE](https://github.com/7thRA-ONE.png)](https://github.com/7thRA-ONE) | [![Sten-X](https://github.com/Sten-X.png)](https://github.com/Sten-X) |
 | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [FantoX](https://github.com/FantoX)                                   | [AYUSH-PANDEY023](https://github.com/AYUSH-PANDEY023)                                  | [7thRA-ONE](https://github.com/7thRA-ONE)                                   | [Sten-X](https://github.com/Sten-X)                                   |
+| [FantoX](https://github.com/kamran522)                                   | [AYUSH-PANDEY023](https://github.com/AYUSH-PANDEY023)                                  | [7thRA-ONE](https://github.com/7thRA-ONE)                                   | [Sten-X](https://github.com/Sten-X)                                   |
 | Owner, Main Developer, Maintainer                                     | Ideas, Testing                                                                         | Support Developer, Maintainer                                               | Support Developer, Maintainer (API)                                   |
 
 <br>
@@ -283,3 +283,8 @@ PRs are welcome! Personal re-branding / bot-name-change PRs will **not** be merg
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | [Ahmii-kun](https://github.com/Ahmii-kun)                                      | [pratyush4932](https://github.com/pratyush4932)                                     | [Devime69](https://github.com/Devime69)                                   |
 | Support Developer (Old)                                                        | Support Developer (Old)                                                             | API Maintainer (Old)                                                      |
+
+
+## KAMI-MD privacy / local QR
+
+Run on your own server with a local MongoDB for bot settings. WhatsApp credentials remain only in `System/session/`; this folder must stay private and excluded from Git. Start with `npm install && npm start`, then scan the QR printed in the same server terminal via WhatsApp Linked Devices. QR/pairing HTTP APIs are disabled and the status page listens only on 127.0.0.1. No remote session sync or upstream update request is performed. The configured Gemini API and optional downloader/media plugins can still send content to their respective providers when used; do not enable those features for private messages without consent. The MIT license and original author copyright notice are retained as required.

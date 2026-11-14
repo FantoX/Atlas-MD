@@ -16,24 +16,24 @@ export default {
   uniquecommands: ["say", "saybengali", "sayhindi", "sayjapanese", "saykorean", "saychinese", "sayindo"],
   description: "All Text to Speech Commands",
   start: async (
-    Atlas,
+    KAMI,
     m,
     { inputCMD, text, prefix, doReact, args, isMedia, quoted }
   ) => {
     if (!text && !m.quoted) {
       await doReact("❔");
-      return m.reply(`Please provide a text (Type or mention a message) !\n\nExample: ${prefix}say Atlas MD is OP`);
+      return m.reply(`Please provide a text (Type or mention a message) !\n\nExample: ${prefix}say KAMI MD is OP`);
     }
     if (isMedia) {
       await doReact("❌");
-      return m.reply(`Please provide a text (Type or mention a message) !\n\nExample: ${prefix}say Atlas MD is OP`);
+      return m.reply(`Please provide a text (Type or mention a message) !\n\nExample: ${prefix}say KAMI MD is OP`);
     }
 
     const sayMess = m.quoted ? m.quoted.msg : args[0] ? args.join(" ") : "No text found";
 
     const sendTTS = async (lang) => {
       await doReact("🪄");
-      await Atlas.sendPresenceUpdate("recording", m.from);
+      await KAMI.sendPresenceUpdate("recording", m.from);
       try {
         const urls = tts.getAllAudioUrls(sayMess, {
           lang,
@@ -41,7 +41,7 @@ export default {
           host: "https://translate.google.com",
           splitPunct: ",.?",
         });
-        await Atlas.sendMessage(
+        await KAMI.sendMessage(
           m.from,
           { audio: { url: urls[0].url }, mimetype: "audio/mpeg" },
           { quoted: m }
