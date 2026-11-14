@@ -270,7 +270,7 @@ export default {
   alias: Object.keys(LOGO_TYPES),
   uniquecommands: Object.keys(LOGO_TYPES),
   description: "Ultra Advanced Logo Maker",
-  start: async (Atlas, m, { inputCMD, text, prefix }) => {
+  start: async (KAMI, m, { inputCMD, text, prefix }) => {
     if (!text) {
       return m.reply(`Example:\n${prefix}${inputCMD} Name|Tagline`);
     }
@@ -360,7 +360,7 @@ export default {
 
       const buffer = canvas.toBuffer("image/png");
 
-      await Atlas.sendMessage(
+      await KAMI.sendMessage(
         m.from,
         {
           image: buffer,
