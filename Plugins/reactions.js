@@ -61,7 +61,7 @@ export default {
     "yeet",
   ],
   description: "All reaction Commands",
-  start: async (Atlas, m, { text, prefix, mentionByTag, doReact }) => {
+  start: async (KAMI, m, { text, prefix, mentionByTag, doReact }) => {
     const suitableWords = {
       bite: "bited",
       blush: "is blushing at",
@@ -124,7 +124,7 @@ export default {
     const { url } = await fetchJson(`https://api.waifu.pics/sfw/${reaction}`);
     const result = await getBuffer(url);
     const buffer = await GIFBufferToVideoBuffer(Buffer.from(result, "utf-8"));
-    await Atlas.sendMessage(
+    await KAMI.sendMessage(
       m.from,
       {
         video: buffer,
