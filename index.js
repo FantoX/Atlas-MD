@@ -25,15 +25,15 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-fs.writeFileSync(path.join(__dirname, "atlas.pid"), process.pid.toString());
+fs.writeFileSync(path.join(__dirname, "kami.pid"), process.pid.toString());
 
 // Map of noise prefixes → clean replacement line printed to stdout once per event
 const _BAILEYS_NOISE_MAP = {
   "Failed to decrypt message with any known session":
-    "[ ATLAS ] Signal: failed to decrypt (session key mismatch — skipped)",
-  "Session error:": "[ ATLAS ] Signal: session error (Bad MAC — skipped)",
+    "[ KAMI ] Signal: failed to decrypt (session key mismatch — skipped)",
+  "Session error:": "[ KAMI ] Signal: session error (Bad MAC — skipped)",
   "Closing open session in favor of incoming prekey bundle":
-    "[ ATLAS ] Signal: rotating session (new prekey bundle received)",
+    "[ KAMI ] Signal: rotating session (new prekey bundle received)",
   "Closing session:": null, // suppress entirely — too verbose (raw key dump)
   "Opening session:": null,
 };
@@ -184,7 +184,7 @@ const store = {
       _lidLogTimer = setTimeout(() => {
         if (global.lidToJidMap.size > 0)
           _origLog(
-            `[ ATLAS ] LID map ready: ${global.lidToJidMap.size / 2} contact(s) mapped`,
+            `[ KAMI ] LID map ready: ${global.lidToJidMap.size / 2} contact(s) mapped`,
           );
       }, 300);
     });
@@ -234,7 +234,7 @@ const store = {
   loadMessage: async (jid, id) => store.messages[jid]?.[id],
 };
 
-// Atlas Server configuration
+// KAMI Server configuration
 let QR_GENERATE = "invalid";
 let status = "initializing";
 let AtlasSocket = null; // module-level reference for pairing API
@@ -287,7 +287,7 @@ const markConnectionStableLater = (socket, generation) => {
   stableConnectionTimer = setTimeout(() => {
     if (isCurrentSocket(socket, generation) && status === "open") {
       reconnectAttempt = 0;
-      console.log(chalk.green(`[ ATLAS ] Connection stable - backoff reset`));
+      console.log(chalk.green(`[ KAMI ] Connection stable - backoff reset`));
     }
   }, STABLE_CONNECTION_MS);
   stableConnectionTimer.unref?.();
@@ -319,7 +319,7 @@ const closeActiveSocket = async (reason) => {
     if (!closedCleanly) {
       console.log(
         chalk.yellow(
-          `[ ATLAS ] Socket close timed out - forcing WebSocket termination`,
+          `[ KAMI ] Socket close timed out - forcing WebSocket termination`,
         ),
       );
       socket.ws?.socket?.terminate?.();
@@ -330,7 +330,7 @@ const closeActiveSocket = async (reason) => {
     }
   } catch (err) {
     console.error(
-      chalk.redBright(`[ ATLAS ] Socket cleanup error: ${err.message}`),
+      chalk.redBright(`[ KAMI ] Socket cleanup error: ${err.message}`),
     );
   }
 };
@@ -354,7 +354,7 @@ const scheduleReconnect = (
   pendingClearAuth = pendingClearAuth || clearAuth;
   if (restartTimer) {
     console.log(
-      chalk.gray(`[ ATLAS ] Reconnect already scheduled - ${reason}`),
+      chalk.gray(`[ KAMI ] Reconnect already scheduled - ${reason}`),
     );
     return;
   }
@@ -366,7 +366,7 @@ const scheduleReconnect = (
 
   console.log(
     chalk.yellow(
-      `[ ATLAS ] Reconnect scheduled in ${(delay / 1000).toFixed(1)}s ` +
+      `[ KAMI ] Reconnect scheduled in ${(delay / 1000).toFixed(1)}s ` +
         `(attempt ${reconnectAttempt}) - ${reason}`,
     ),
   );
@@ -391,7 +391,7 @@ const scheduleReconnect = (
       await startAtlas(`reconnect: ${reason}`);
     } catch (err) {
       console.error(
-        chalk.redBright(`[ ATLAS ] Reconnect cycle failed: ${err.message}`),
+        chalk.redBright(`[ KAMI ] Reconnect cycle failed: ${err.message}`),
       );
       scheduleReconnect(`reconnect cycle failed: ${err.message}`, {
         clearAuth: shouldClearAuth,
@@ -413,7 +413,7 @@ async function startAtlas(trigger = "initial") {
   startPromise = connectAtlas(trigger)
     .catch((err) => {
       console.error(
-        chalk.redBright(`[ ATLAS ] Connection startup failed: ${err.message}`),
+        chalk.redBright(`[ KAMI ] Connection startup failed: ${err.message}`),
       );
       scheduleReconnect(`startup failed: ${err.message}`);
       return null;
@@ -426,7 +426,7 @@ async function startAtlas(trigger = "initial") {
 }
 
 const connectAtlas = async (trigger) => {
-  console.log(chalk.cyan(`[ ATLAS ] Starting connection (${trigger})...`));
+  console.log(chalk.cyan(`[ KAMI ] Starting connection (${trigger})...`));
   // ── Silently wipe the Cache folder on every boot / restart ──────────────
   try {
     const cacheDir = path.join(__dirname, "System", "Cache");
@@ -444,7 +444,7 @@ const connectAtlas = async (trigger) => {
 
   try {
     await mongoose.connect(mongodb);
-    console.log(chalk.green(`[ ATLAS ] MongoDB connected ✓`));
+    console.log(chalk.green(`[ KAMI ] MongoDB connected ✓`));
   } catch (err) {
     console.error(
       chalk.redBright(`[ EXCEPTION ] MongoDB error: ${err.message}`),
@@ -455,7 +455,7 @@ const connectAtlas = async (trigger) => {
   mongoAuth = nextMongoAuth;
   clearAuthState = clearState;
   console.log(
-    figlet.textSync("ATLAS", {
+    figlet.textSync("KAMI", {
       font: "Standard",
       horizontalLayout: "default",
       vertivalLayout: "default",
@@ -472,38 +472,19 @@ const connectAtlas = async (trigger) => {
 
   console.log(
     chalk.cyan(
-      `[ ATLAS ] v${global.botVersion}  |  Node.js ${process.version}  |  ${process.platform}/${process.arch}`,
+      `[ KAMI ] v${global.botVersion}  |  Node.js ${process.version}  |  ${process.platform}/${process.arch}`,
     ),
   );
 
-  try {
-    const remote = await got(
-      "https://raw.githubusercontent.com/FantoX/Atlas-MD/main/package.json",
-    ).json();
-    global.latestVersion = remote.version;
-    if (remote.version !== pkg.version) {
-      global.updateAvailable = true;
-      console.log(
-        chalk.yellow(
-          `[ ATLAS ] Update available: v${pkg.version} → v${remote.version}  |  git pull && npm install`,
-        ),
-      );
-    } else {
-      console.log(chalk.green(`[ ATLAS ] Up to date ✓`));
-    }
-  } catch {
-    console.log(
-      chalk.gray(`[ ATLAS ] Update check skipped (network unavailable)`),
-    );
-  }
+  // No upstream version phone-home request.
   console.log("");
 
-  await installPlugin();
+  // Do not download and execute remote plugins automatically at startup.
 
   const { version, isLatest } = await fetchLatestBaileysVersion();
 
   const generation = ++socketGeneration;
-  const Atlas = makeWASocket({
+  const KAMI = makeWASocket({
     logger: pino({ level: "silent" }),
     browser: ["Ubuntu", "Chrome", "20.0.04"],
     auth: state,
@@ -514,18 +495,18 @@ const connectAtlas = async (trigger) => {
     keepAliveIntervalMs: KEEP_ALIVE_INTERVAL_MS,
   });
 
-  AtlasSocket = Atlas; // expose for pairing API
+  AtlasSocket = KAMI; // expose for pairing API
   activeSocketGeneration = generation;
   socketStartedAt = Date.now();
   lastConnectionUpdateAt = socketStartedAt;
   healthProbeFailures = 0;
 
-  store.bind(Atlas.ev);
+  store.bind(KAMI.ev);
 
-  Atlas.public = true;
+  KAMI.public = true;
 
   async function installPlugin() {
-    console.log(chalk.cyan(`[ ATLAS ] Checking plugins...`));
+    console.log(chalk.cyan(`[ KAMI ] Checking plugins...`));
     let plugins = [];
     try {
       plugins = await getPluginURLs();
@@ -536,10 +517,10 @@ const connectAtlas = async (trigger) => {
     }
 
     if (!plugins.length) {
-      console.log(chalk.gray(`[ ATLAS ] No extra plugins installed`));
+      console.log(chalk.gray(`[ KAMI ] No extra plugins installed`));
     } else {
       console.log(
-        chalk.cyan(`[ ATLAS ] Installing ${plugins.length} plugin(s)...`),
+        chalk.cyan(`[ KAMI ] Installing ${plugins.length} plugin(s)...`),
       );
       for (let i = 0; i < plugins.length; i++) {
         const pluginUrl = plugins[i];
@@ -563,11 +544,11 @@ const connectAtlas = async (trigger) => {
             }
 
             fs.writeFileSync(filePath, pluginBody);
-            console.log(chalk.green(`[ ATLAS ] ✓ ${fileName}`));
+            console.log(chalk.green(`[ KAMI ] ✓ ${fileName}`));
           } else {
             console.log(
               chalk.yellow(
-                `[ ATLAS ] ✗ ${path.basename(pluginUrl)} (HTTP ${statusCode})`,
+                `[ KAMI ] ✗ ${path.basename(pluginUrl)} (HTTP ${statusCode})`,
               ),
             );
           }
@@ -579,29 +560,29 @@ const connectAtlas = async (trigger) => {
           );
         }
       }
-      console.log(chalk.green(`[ ATLAS ] Plugins ready`));
+      console.log(chalk.green(`[ KAMI ] Plugins ready`));
     }
   }
 
   await readcommands();
 
-  Atlas.ev.on("creds.update", saveCreds);
-  Atlas.serializeM = (m) => smsg(Atlas, m, store);
-  Atlas.ev.on("connection.update", async (update) => {
-    if (!isCurrentSocket(Atlas, generation)) return;
+  KAMI.ev.on("creds.update", saveCreds);
+  KAMI.serializeM = (m) => smsg(KAMI, m, store);
+  KAMI.ev.on("connection.update", async (update) => {
+    if (!isCurrentSocket(KAMI, generation)) return;
 
     const { lastDisconnect, connection, qr } = update;
     lastConnectionUpdateAt = Date.now();
 
     if (connection) {
       status = connection;
-      console.info(`[ ATLAS ] Server Status => ${connection}`);
+      console.info(`[ KAMI ] Server Status => ${connection}`);
     }
 
     if (connection === "open") {
       QR_GENERATE = "invalid";
       healthProbeFailures = 0;
-      markConnectionStableLater(Atlas, generation);
+      markConnectionStableLater(KAMI, generation);
     }
 
     if (connection === "close") {
@@ -619,7 +600,7 @@ const connectAtlas = async (trigger) => {
 
       console.log(
         chalk.yellow(
-          `[ ATLAS ] Connection closed - ${reasonName}. Recovery starting.`,
+          `[ KAMI ] Connection closed - ${reasonName}. Recovery starting.`,
         ),
       );
       scheduleReconnect(`disconnect: ${reasonName}`, {
@@ -635,28 +616,28 @@ const connectAtlas = async (trigger) => {
     }
   });
 
-  Atlas.ev.on("group-participants.update", async (m) => {
-    if (!isCurrentSocket(Atlas, generation)) return;
-    welcomeLeft(Atlas, m);
+  KAMI.ev.on("group-participants.update", async (m) => {
+    if (!isCurrentSocket(KAMI, generation)) return;
+    welcomeLeft(KAMI, m);
   });
 
-  Atlas.ev.on("messages.upsert", async (chatUpdate) => {
-    if (!isCurrentSocket(Atlas, generation)) return;
+  KAMI.ev.on("messages.upsert", async (chatUpdate) => {
+    if (!isCurrentSocket(KAMI, generation)) return;
     if (chatUpdate.type !== "notify") return;
     const msg = chatUpdate.messages?.[0];
     if (!msg) return;
-    const m = serialize(Atlas, msg);
+    const m = serialize(KAMI, msg);
 
     if (!m?.message) return;
     if (m.key?.remoteJid === "status@broadcast") return;
     if (m.key?.id?.startsWith("BAE5") && m.key.id.length === 16) return;
 
-    core(Atlas, m, commands, chatUpdate);
+    core(KAMI, m, commands, chatUpdate);
   });
 
   // ─── Anti-Delete: catch "delete for everyone" and resend ───────────────────
-  Atlas.ev.on("messages.update", async (updates) => {
-    if (!isCurrentSocket(Atlas, generation)) return;
+  KAMI.ev.on("messages.update", async (updates) => {
+    if (!isCurrentSocket(KAMI, generation)) return;
     for (const { key, update } of updates) {
       try {
         // Only care about group "delete for everyone" events
@@ -689,7 +670,7 @@ const connectAtlas = async (trigger) => {
         } = await import("@whiskeysockets/baileys");
 
         // Skip if the original message was sent by the bot itself
-        const botJid = Atlas.user?.id ? jidNormalizedUser(Atlas.user.id) : null;
+        const botJid = KAMI.user?.id ? jidNormalizedUser(KAMI.user.id) : null;
         if (
           cached.key?.fromMe ||
           (botJid &&
@@ -701,7 +682,7 @@ const connectAtlas = async (trigger) => {
 
         // Skip if the deleter is a group admin
         try {
-          const groupMeta = await Atlas.groupMetadata(groupId);
+          const groupMeta = await KAMI.groupMetadata(groupId);
           const admins = groupMeta.participants
             .filter((p) => p.admin === "admin" || p.admin === "superadmin")
             .map((p) => jidNormalizedUser(p.id));
@@ -720,11 +701,7 @@ const connectAtlas = async (trigger) => {
         if (ownerDigits.includes(deleterDigits)) continue;
 
         // Skip if the deleter is an integrated developer
-        const integratedJids = [
-          "918101187835@s.whatsapp.net",
-          "923045204414@s.whatsapp.net",
-        ];
-        if (integratedJids.includes(jidNormalizedUser(deleter))) continue;
+        // No hard-coded developer exception.
 
         const senderTag = `@${deleter.split("@")[0]}`;
 
@@ -745,7 +722,7 @@ const connectAtlas = async (trigger) => {
             contentType === "conversation"
               ? extracted.conversation
               : content?.text || "";
-          await Atlas.sendMessage(groupId, {
+          await KAMI.sendMessage(groupId, {
             text: `🛡️ *Anti-Delete*\n\n${senderTag} deleted:\n\n${text}`,
             mentions: [deleter],
           });
@@ -780,36 +757,36 @@ const connectAtlas = async (trigger) => {
             (content.caption ? `:\n\n${content.caption}` : "");
 
           if (isImage) {
-            await Atlas.sendMessage(groupId, {
+            await KAMI.sendMessage(groupId, {
               image: buffer,
               caption,
               mentions: [deleter],
             });
           } else if (isVideo) {
-            await Atlas.sendMessage(groupId, {
+            await KAMI.sendMessage(groupId, {
               video: buffer,
               caption,
               mentions: [deleter],
             });
           } else if (isAudio) {
-            await Atlas.sendMessage(groupId, {
+            await KAMI.sendMessage(groupId, {
               audio: buffer,
               mimetype: content.mimetype || "audio/ogg; codecs=opus",
               caption: undefined,
               mentions: [deleter],
             });
-            await Atlas.sendMessage(groupId, {
+            await KAMI.sendMessage(groupId, {
               text: `🛡️ *Anti-Delete*\n\n${senderTag} deleted an audio message`,
               mentions: [deleter],
             });
           } else if (isSticker) {
-            await Atlas.sendMessage(groupId, { sticker: buffer });
-            await Atlas.sendMessage(groupId, {
+            await KAMI.sendMessage(groupId, { sticker: buffer });
+            await KAMI.sendMessage(groupId, {
               text: `🛡️ *Anti-Delete*\n\n${senderTag} deleted a sticker`,
               mentions: [deleter],
             });
           } else if (isDoc) {
-            await Atlas.sendMessage(groupId, {
+            await KAMI.sendMessage(groupId, {
               document: buffer,
               mimetype: content.mimetype || "application/octet-stream",
               fileName: content.fileName || "document",
@@ -821,7 +798,7 @@ const connectAtlas = async (trigger) => {
         }
 
         // Fallback: unknown type — just notify
-        await Atlas.sendMessage(groupId, {
+        await KAMI.sendMessage(groupId, {
           text: `🛡️ *Anti-Delete*\n\n${senderTag} deleted a message (type: ${contentType})`,
           mentions: [deleter],
         });
@@ -831,14 +808,14 @@ const connectAtlas = async (trigger) => {
     }
   });
 
-  Atlas.getName = (jid, withoutContact = false) => {
-    let id = Atlas.decodeJid(jid);
-    withoutContact = Atlas.withoutContact || withoutContact;
+  KAMI.getName = (jid, withoutContact = false) => {
+    let id = KAMI.decodeJid(jid);
+    withoutContact = KAMI.withoutContact || withoutContact;
     let v;
     if (id.endsWith("@g.us"))
       return new Promise(async (resolve) => {
         v = store.contacts[id] || {};
-        if (!(v.name || v.subject)) v = Atlas.groupMetadata(id) || {};
+        if (!(v.name || v.subject)) v = KAMI.groupMetadata(id) || {};
         resolve(
           v.name ||
             v.subject ||
@@ -854,8 +831,8 @@ const connectAtlas = async (trigger) => {
               id,
               name: "WhatsApp",
             }
-          : id === Atlas.decodeJid(Atlas.user.id)
-            ? Atlas.user
+          : id === KAMI.decodeJid(KAMI.user.id)
+            ? KAMI.user
             : store.contacts[id] || {};
     return (
       (withoutContact ? "" : v.name) ||
@@ -867,7 +844,7 @@ const connectAtlas = async (trigger) => {
     );
   };
 
-  Atlas.decodeJid = (jid) => {
+  KAMI.decodeJid = (jid) => {
     if (!jid) return jid;
     if (/:\d+@/gi.test(jid)) {
       let decode = jidDecode(jid) || {};
@@ -878,10 +855,10 @@ const connectAtlas = async (trigger) => {
     } else return jid;
   };
 
-  Atlas.ev.on("contacts.update", (update) => {
-    if (!isCurrentSocket(Atlas, generation)) return;
+  KAMI.ev.on("contacts.update", (update) => {
+    if (!isCurrentSocket(KAMI, generation)) return;
     for (let contact of update) {
-      let id = Atlas.decodeJid(contact.id);
+      let id = KAMI.decodeJid(contact.id);
       if (store && store.contacts)
         store.contacts[id] = {
           id,
@@ -890,7 +867,7 @@ const connectAtlas = async (trigger) => {
     }
   });
 
-  Atlas.downloadAndSaveMediaMessage = async (
+  KAMI.downloadAndSaveMediaMessage = async (
     message,
     filename,
     attachExtension = true,
@@ -917,7 +894,7 @@ const connectAtlas = async (trigger) => {
                 error: () => {},
               }),
             },
-            reuploadRequest: Atlas.updateMediaMessage,
+            reuploadRequest: KAMI.updateMediaMessage,
           },
         );
       } catch (e) {
@@ -943,7 +920,7 @@ const connectAtlas = async (trigger) => {
     return trueFileName;
   };
 
-  Atlas.downloadMediaMessage = async (message) => {
+  KAMI.downloadMediaMessage = async (message) => {
     // Try Baileys v7 high-level download with reupload support first
     const fakeMsg = message.fakeObj || message;
     if (fakeMsg.key && fakeMsg.message) {
@@ -965,7 +942,7 @@ const connectAtlas = async (trigger) => {
                 error: () => {},
               }),
             },
-            reuploadRequest: Atlas.updateMediaMessage,
+            reuploadRequest: KAMI.updateMediaMessage,
           },
         );
       } catch (e) {
@@ -985,14 +962,14 @@ const connectAtlas = async (trigger) => {
     return buffer;
   };
 
-  Atlas.parseMention = async (text) => {
+  KAMI.parseMention = async (text) => {
     return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(
       (v) => v[1] + "@s.whatsapp.net",
     );
   };
 
-  Atlas.sendText = (jid, text, quoted = "", options) =>
-    Atlas.sendMessage(
+  KAMI.sendText = (jid, text, quoted = "", options) =>
+    KAMI.sendMessage(
       jid,
       {
         text: text,
@@ -1003,7 +980,7 @@ const connectAtlas = async (trigger) => {
       },
     );
 
-  Atlas.getFile = async (PATH, save) => {
+  KAMI.getFile = async (PATH, save) => {
     let res;
     let data = Buffer.isBuffer(PATH)
       ? PATH
@@ -1035,14 +1012,14 @@ const connectAtlas = async (trigger) => {
     };
   };
 
-  Atlas.setStatus = (status) => {
+  KAMI.setStatus = (status) => {
     // v7: query() removed — use updateProfileStatus instead (fire-and-forget)
-    Atlas.updateProfileStatus(status).catch(() => {});
+    KAMI.updateProfileStatus(status).catch(() => {});
     return status;
   };
 
-  Atlas.sendFile = async (jid, PATH, fileName, quoted = {}, options = {}) => {
-    let types = await Atlas.getFile(PATH, true);
+  KAMI.sendFile = async (jid, PATH, fileName, quoted = {}, options = {}) => {
+    let types = await KAMI.getFile(PATH, true);
     let { filename, size, ext, mime, data } = types;
     let type = "",
       mimetype = mime,
@@ -1066,7 +1043,7 @@ const connectAtlas = async (trigger) => {
     else if (/video/.test(mime)) type = "video";
     else if (/audio/.test(mime)) type = "audio";
     else type = "document";
-    await Atlas.sendMessage(
+    await KAMI.sendMessage(
       jid,
       {
         [type]: {
@@ -1084,7 +1061,7 @@ const connectAtlas = async (trigger) => {
     return fs.promises.unlink(pathFile);
   };
 
-  return Atlas;
+  return KAMI;
 };
 
 void startAtlas();
@@ -1102,10 +1079,10 @@ const runPeriodicSync = async () => {
 
   periodicSyncPromise = mongoAuth
     .pushToMongoDB()
-    .then(() => console.log(chalk.cyan(`[ ATLAS ] Session synced to MongoDB`)))
+    .then(() => console.log(chalk.cyan(`[ KAMI ] Session synced to MongoDB`)))
     .catch((err) =>
       console.error(
-        chalk.redBright(`[ ATLAS ] MongoDB session sync error: ${err.message}`),
+        chalk.redBright(`[ KAMI ] MongoDB session sync error: ${err.message}`),
       ),
     )
     .finally(() => {
@@ -1126,7 +1103,7 @@ const runWatchdog = async () => {
     if (startPromise && startingFor > CONNECT_STALL_TIMEOUT_MS) {
       console.error(
         chalk.redBright(
-          `[ ATLAS ] Connection startup stalled for ` +
+          `[ KAMI ] Connection startup stalled for ` +
             `${Math.round(startingFor / 1000)}s - exiting for supervisor restart`,
         ),
       );
@@ -1186,7 +1163,7 @@ const runWatchdog = async () => {
     healthProbeFailures += 1;
     console.error(
       chalk.yellow(
-        `[ ATLAS ] Watchdog probe failed ${healthProbeFailures}/` +
+        `[ KAMI ] Watchdog probe failed ${healthProbeFailures}/` +
           `${HEALTH_FAILURE_THRESHOLD}: ${err.message}`,
       ),
     );
@@ -1211,7 +1188,7 @@ const messageCacheTimer = setInterval(
 );
 console.log(
   chalk.cyan(
-    `[ ATLAS ] Connection watchdog active - probing every ` +
+    `[ KAMI ] Connection watchdog active - probing every ` +
       `${WATCHDOG_INTERVAL_MS / 1000}s`,
   ),
 );
@@ -1223,7 +1200,7 @@ if (typeof global.gc === "function") {
       global.gc();
       console.log(
         chalk.cyan(
-          `[ ATLAS ] Garbage collection triggered (interval: ${GC_INTERVAL_MINUTES}m)`,
+          `[ KAMI ] Garbage collection triggered (interval: ${GC_INTERVAL_MINUTES}m)`,
         ),
       );
       await runPeriodicSync();
@@ -1232,12 +1209,12 @@ if (typeof global.gc === "function") {
   );
   console.log(
     chalk.cyan(
-      `[ ATLAS ] GC scheduler active — running every ${GC_INTERVAL_MINUTES} minute(s)`,
+      `[ KAMI ] GC scheduler active — running every ${GC_INTERVAL_MINUTES} minute(s)`,
     ),
   );
 } else {
   console.warn(
-    "[ ATLAS ] GC not available. Start the bot with 'npm start' to enable garbage collection.",
+    "[ KAMI ] GC not available. Start the bot with 'npm start' to enable garbage collection.",
   );
   // Still run session sync even without GC.
   maintenanceTimer = setInterval(
@@ -1252,7 +1229,7 @@ const shutdown = async (signal) => {
   if (shuttingDown) return;
   shuttingDown = true;
   status = "stopping";
-  console.log(chalk.yellow(`[ ATLAS ] ${signal} received - shutting down`));
+  console.log(chalk.yellow(`[ KAMI ] ${signal} received - shutting down`));
 
   if (restartTimer) clearTimeout(restartTimer);
   clearInterval(watchdogTimer);
@@ -1286,51 +1263,6 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-app.get("/api/qr", async (req, res) => {
-  if (status === "open") {
-    return res.json({ status: "connected" });
-  }
-  if (!QR_GENERATE || QR_GENERATE === "invalid") {
-    return res.json({ status: "waiting" });
-  }
-  try {
-    const qrDataUrl = await qrcode.toDataURL(QR_GENERATE);
-    return res.json({ status: "qr", qr: qrDataUrl });
-  } catch (err) {
-    return res.status(500).json({ status: "error", message: err.message });
-  }
-});
-
-app.post("/api/pair", async (req, res) => {
-  const { phone } = req.body;
-  if (!phone) {
-    return res.status(400).json({ error: "Phone number is required." });
-  }
-  if (status === "open") {
-    return res.status(400).json({ error: "Session is already connected!" });
-  }
-  if (!AtlasSocket) {
-    return res
-      .status(503)
-      .json({ error: "Bot socket is not ready yet. Please wait a moment." });
-  }
-  try {
-    const cleaned = phone.replace(/[^0-9]/g, "");
-    let code = await AtlasSocket.requestPairingCode(cleaned);
-    code = code?.match(/.{1,4}/g)?.join("-") || code;
-    console.log(
-      chalk.black.bgGreen(` PAIRING CODE: `),
-      chalk.black.bgWhite(` ${code} `),
-    );
-    return res.json({ code });
-  } catch (err) {
-    console.error(
-      chalk.red("[ EXCEPTION ] Pairing code error: " + err.message),
-    );
-    return res
-      .status(500)
-      .json({ error: "Failed to generate pairing code: " + err.message });
-  }
-});
-
-app.listen(PORT);
+// QR and pairing secrets are never exposed through HTTP.
+// Scan the QR directly in the server terminal.
+app.listen(PORT, "127.0.0.1", () => console.log(`[ KAMI ] Local status page: http://127.0.0.1:${PORT}`));
